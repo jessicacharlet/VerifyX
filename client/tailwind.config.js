@@ -4,19 +4,28 @@ export default {
   theme: {
     extend: {
       colors: {
-        brand: {
-          50: "#eff6ff",
-          100: "#dbeafe",
-          500: "#3b82f6",
-          600: "#2563eb",
-          700: "#1d4ed8",
-          800: "#1e40af",
-          900: "#1e3a8a",
-          950: "#0f172a",
+        slate: {
+          950: "#090d16",
+          900: "#0f172a",
+        },
+        purple: {
+          500: "#a855f7",
+          600: "#9333ea",
+          700: "#7e22ce",
+        },
+        indigo: {
+          500: "#6366f1",
+          600: "#4f46e5",
+          700: "#4338ca",
+        },
+        cyan: {
+          400: "#22d3ee",
+          500: "#06b6d4",
         },
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
+        mono: ["JetBrains Mono", "Fira Code", "monospace"],
       },
     },
   },
