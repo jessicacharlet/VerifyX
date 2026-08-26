@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import API from "../services/api";
 import { useWeb3 } from "../context/Web3Context";
 import {
-  ShieldCheck,
+  Shield,
   Package,
   QrCode,
   Lock,
@@ -15,6 +15,7 @@ import {
   Printer,
   Download,
   Copy,
+  Cpu,
 } from "lucide-react";
 
 export default function RegisterProductPage() {
@@ -34,12 +35,11 @@ export default function RegisterProductPage() {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [step, setStep] = useState(1); // 1: Form -> 2: Review & On-Chain -> 3: Success Result
+  const [step, setStep] = useState(1);
   const [error, setError] = useState("");
   const [createdProduct, setCreatedProduct] = useState(null);
 
-  const { account, connectWallet, registerProductOnChain, hasMetaMask } = useWeb3();
-  const navigate = useNavigate();
+  const { account, chainId, connectWallet, registerProductOnChain, hasMetaMask } = useWeb3();
 
   useEffect(() => {
     if (account) {
@@ -59,20 +59,18 @@ export default function RegisterProductPage() {
     }
   };
 
-  // Form Submit Handler
   const handleSubmitProduct = async (e) => {
     e.preventDefault();
     setError("");
 
     if (!formData.productName || !formData.brandName || !formData.category || !formData.batchNumber || !formData.serialNumber) {
-      setError("Please complete all required product information fields.");
+      setError("Please fill in all required product identity fields.");
       return;
     }
 
     try {
       setIsSubmitting(true);
 
-      // Step 1: Submit to Backend REST API (MongoDB creation + SHA-256 + QR generation)
       const data = new FormData();
       Object.keys(formData).forEach((key) => {
         if (formData[key]) data.append(key, formData[key]);
@@ -89,25 +87,23 @@ export default function RegisterProductPage() {
         const prod = res.data.product;
         setCreatedProduct(prod);
 
-        // Step 2: Call Smart Contract via MetaMask if connected
         if (hasMetaMask) {
           try {
-            console.log("Triggering MetaMask smart contract transaction...");
+            console.log("Submitting smart contract transaction via MetaMask...");
             const txHash = await registerProductOnChain(prod.productId, prod.productHash);
             prod.transactionHash = txHash;
 
-            // Sync transaction hash back to server DB
             await API.post("/blockchain/register", {
               productId: prod.productId,
               transactionHash: txHash,
               ownerWallet: account || prod.ownerWallet,
             });
           } catch (web3Err) {
-            console.warn("Web3 On-chain transaction skipped or rejected by user:", web3Err.message);
+            console.warn("On-chain Web3 transaction skipped:", web3Err.message);
           }
         }
 
-        setStep(3); // Show Success Screen
+        setStep(3);
       }
     } catch (err) {
       console.error("Product Registration Error:", err);
@@ -123,74 +119,81 @@ export default function RegisterProductPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-10 space-y-8">
+    <div className="max-w-4xl mx-auto px-4 py-8 space-y-8 bg-[#050816]">
       {/* Header */}
       <div className="text-center space-y-2">
-        <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-xs font-semibold border border-blue-500/20">
-          <ShieldCheck className="w-4 h-4" />
-          <span>Ethereum Smart Contract Integration</span>
+        <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400 text-xs font-mono font-semibold">
+          <Cpu className="w-3.5 h-3.5" />
+          <span>SOLICITY SMART CONTRACT REGISTRATION</span>
         </div>
-        <h1 className="text-3xl font-extrabold text-white">Register New Authenticated Product</h1>
-        <p className="text-xs text-slate-400">
-          Generate SHA-256 cryptographic hashes and register tamper-proof records on the blockchain.
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-white">Register Product Metadata</h1>
+        <p className="text-xs text-slate-400 max-w-md mx-auto">
+          Generate SHA-256 digital signatures and register item records on the Ethereum blockchain.
         </p>
       </div>
 
-      {/* Step Indicator */}
-      <div className="grid grid-cols-3 gap-2 text-center text-xs font-bold">
-        <div className={`py-2 rounded-xl border ${step === 1 ? "bg-blue-600/20 text-blue-400 border-blue-500/40" : "bg-slate-900 text-slate-500 border-slate-800"}`}>
-          1. Product Details
-        </div>
-        <div className={`py-2 rounded-xl border ${step === 2 ? "bg-purple-600/20 text-purple-400 border-purple-500/40" : "bg-slate-900 text-slate-500 border-slate-800"}`}>
-          2. Cryptographic Hash
-        </div>
-        <div className={`py-2 rounded-xl border ${step === 3 ? "bg-emerald-600/20 text-emerald-400 border-emerald-500/40" : "bg-slate-900 text-slate-500 border-slate-800"}`}>
-          3. QR & Blockchain Result
-        </div>
-      </div>
-
-      {/* STEP 1 & 2 FORM */}
       {step < 3 && (
-        <form onSubmit={handleSubmitProduct} className="glass-panel p-8 rounded-3xl border border-slate-800 space-y-6 shadow-2xl">
+        <form onSubmit={handleSubmitProduct} className="bg-[#0D1528] p-6 sm:p-8 rounded-2xl border border-[#1E2A47] space-y-6 shadow-xl">
           {error && (
-            <div className="p-3 rounded-xl bg-red-950/60 border border-red-800/60 text-xs text-red-300 flex items-start space-x-2">
+            <div className="p-3 rounded-xl bg-red-950/60 border border-red-500/40 text-xs text-red-300 flex items-start space-x-2">
               <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
           )}
 
-          {/* Web3 Wallet Banner */}
-          <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between">
-            <div className="flex items-center space-x-3 text-xs">
-              <Wallet className={`w-5 h-5 ${account ? "text-emerald-400" : "text-amber-400"}`} />
-              <div>
-                <span className="font-bold text-slate-200 block">Connected Ethereum Wallet</span>
-                <span className="font-mono text-slate-400 block text-[11px]">
-                  {account ? account : "Wallet disconnected. (Will use server-signed ledger mode)"}
+          {/* VISUALLY DISTINCT BLOCKCHAIN REGISTRATION SECTION */}
+          <div className="bg-[#0A1020] p-5 rounded-xl border border-purple-500/30 space-y-3">
+            <div className="flex items-center justify-between border-b border-[#1E2A47] pb-3">
+              <div className="flex items-center space-x-2">
+                <Cpu className="w-4 h-4 text-purple-400" />
+                <span className="text-xs font-mono font-bold text-white uppercase tracking-wider">
+                  BLOCKCHAIN REGISTRATION
+                </span>
+              </div>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-950/60 text-purple-400 border border-purple-500/30">
+                Ethereum Paris / Hardhat 31337
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-mono">
+              <div className="bg-[#050816] p-3 rounded-lg border border-[#1E2A47] space-y-1">
+                <span className="text-slate-500 text-[10px] block">Wallet Status</span>
+                <span className={`font-bold block ${account ? "text-emerald-400" : "text-amber-400"}`}>
+                  {account ? "● Connected" : "Wallet Disconnected"}
+                </span>
+              </div>
+
+              <div className="bg-[#050816] p-3 rounded-lg border border-[#1E2A47] space-y-1 sm:col-span-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500 text-[10px]">Connected Wallet Address</span>
+                  {!account && (
+                    <button
+                      type="button"
+                      onClick={connectWallet}
+                      className="text-[10px] text-purple-400 hover:underline font-bold"
+                    >
+                      Connect MetaMask
+                    </button>
+                  )}
+                </div>
+                <span className="text-slate-200 text-[11px] truncate block">
+                  {account ? account : "0x70997970C51812dc3A010C7d01b50e0d17dc79C8 (Server Signer)"}
                 </span>
               </div>
             </div>
-            {!account && (
-              <button
-                type="button"
-                onClick={connectWallet}
-                className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold"
-              >
-                Connect MetaMask
-              </button>
-            )}
           </div>
 
+          {/* Form Fields */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div className="space-y-1.5">
-              <label className="font-bold text-slate-300 uppercase tracking-wider block">Product ID (Unique)</label>
+              <label className="font-mono font-bold text-slate-300 uppercase tracking-wider block">Product ID (Unique)</label>
               <input
                 type="text"
                 name="productId"
                 value={formData.productId}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white font-mono text-xs uppercase"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#0A1020] border border-[#1E2A47] text-white font-mono text-xs focus:outline-none focus:border-purple-500"
               />
             </div>
 
@@ -203,7 +206,7 @@ export default function RegisterProductPage() {
                 onChange={handleChange}
                 placeholder="e.g. AirPods Pro (2nd Gen)"
                 required
-                className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#0A1020] border border-[#1E2A47] text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
               />
             </div>
 
@@ -216,7 +219,7 @@ export default function RegisterProductPage() {
                 onChange={handleChange}
                 placeholder="e.g. Apple Inc."
                 required
-                className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#0A1020] border border-[#1E2A47] text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
               />
             </div>
 
@@ -226,7 +229,7 @@ export default function RegisterProductPage() {
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
-                className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#0A1020] border border-[#1E2A47] text-white focus:outline-none focus:border-purple-500"
               >
                 <option value="Electronics">Electronics</option>
                 <option value="Smartphones">Smartphones</option>
@@ -238,26 +241,26 @@ export default function RegisterProductPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="font-bold text-slate-300 uppercase tracking-wider block">Batch Number *</label>
+              <label className="font-mono font-bold text-slate-300 uppercase tracking-wider block">Batch Number *</label>
               <input
                 type="text"
                 name="batchNumber"
                 value={formData.batchNumber}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white font-mono text-xs uppercase"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#0A1020] border border-[#1E2A47] text-white font-mono text-xs focus:outline-none focus:border-purple-500"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="font-bold text-slate-300 uppercase tracking-wider block">Serial Number *</label>
+              <label className="font-mono font-bold text-slate-300 uppercase tracking-wider block">Serial Number *</label>
               <input
                 type="text"
                 name="serialNumber"
                 value={formData.serialNumber}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white font-mono text-xs uppercase"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#0A1020] border border-[#1E2A47] text-white font-mono text-xs focus:outline-none focus:border-purple-500"
               />
             </div>
 
@@ -269,7 +272,7 @@ export default function RegisterProductPage() {
                 value={formData.manufacturingDate}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#0A1020] border border-[#1E2A47] text-white focus:outline-none focus:border-purple-500"
               />
             </div>
 
@@ -280,7 +283,7 @@ export default function RegisterProductPage() {
                 name="expiryDate"
                 value={formData.expiryDate}
                 onChange={handleChange}
-                className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#0A1020] border border-[#1E2A47] text-white focus:outline-none focus:border-purple-500"
               />
             </div>
 
@@ -291,21 +294,21 @@ export default function RegisterProductPage() {
                 rows="3"
                 value={formData.description}
                 onChange={handleChange}
-                placeholder="Detailed technical specifications or batch metadata..."
-                className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500"
+                placeholder="Product technical specs..."
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#0A1020] border border-[#1E2A47] text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
               ></textarea>
             </div>
 
             <div className="col-span-1 sm:col-span-2 space-y-1.5">
               <label className="font-bold text-slate-300 uppercase tracking-wider block">Product Image</label>
               <div className="flex items-center space-x-4">
-                <label className="cursor-pointer px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 font-semibold flex items-center space-x-2">
-                  <Upload className="w-4 h-4 text-blue-400" />
-                  <span>Choose Image File</span>
+                <label className="cursor-pointer px-4 py-2.5 rounded-xl bg-[#0A1020] hover:bg-[#111B32] border border-[#1E2A47] text-slate-300 font-semibold flex items-center space-x-2 transition-colors">
+                  <Upload className="w-4 h-4 text-purple-400" />
+                  <span>Upload Image File</span>
                   <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
                 </label>
                 {imagePreview && (
-                  <img src={imagePreview} alt="Preview" className="w-12 h-12 rounded-lg object-cover border border-slate-700" />
+                  <img src={imagePreview} alt="Preview" className="w-12 h-12 rounded-lg object-cover border border-[#1E2A47]" />
                 )}
               </div>
             </div>
@@ -314,47 +317,42 @@ export default function RegisterProductPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-4 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-600/30 flex items-center justify-center space-x-2 transition-all text-sm mt-4"
+            className="w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-md shadow-purple-600/20 border border-purple-400/30 flex items-center justify-center space-x-2 transition-all text-xs"
           >
             <Lock className="w-4 h-4" />
-            <span>{isSubmitting ? "Generating Hash & Signing Smart Contract..." : "Register Product & Mint On-Chain Record"}</span>
+            <span>{isSubmitting ? "Generating SHA-256 & Signing Contract..." : "Register Product & Mint On-Chain Record"}</span>
           </button>
         </form>
       )}
 
-      {/* STEP 3 SUCCESS SCREEN */}
+      {/* STEP 3 SUCCESS RESULT */}
       {step === 3 && createdProduct && (
-        <div className="glass-panel p-8 rounded-3xl border border-emerald-500/40 space-y-8 text-center shadow-2xl">
-          <div className="w-16 h-16 rounded-2xl bg-emerald-500 text-slate-950 flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/30">
-            <CheckCircle className="w-10 h-10" />
+        <div className="bg-[#0D1528] p-8 rounded-2xl border border-emerald-500/40 space-y-6 text-center shadow-xl">
+          <div className="w-14 h-14 rounded-2xl bg-emerald-950/60 text-emerald-400 border border-emerald-500/40 flex items-center justify-center mx-auto">
+            <CheckCircle className="w-8 h-8" />
           </div>
 
-          <div className="space-y-2">
-            <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold uppercase tracking-widest">
-              Blockchain Transaction Confirmed
+          <div className="space-y-1">
+            <span className="px-3 py-1 rounded bg-emerald-950/80 text-emerald-400 border border-emerald-500/30 text-xs font-mono font-bold uppercase tracking-wider">
+              BLOCKCHAIN TRANSACTION CONFIRMED
             </span>
-            <h2 className="text-3xl font-extrabold text-white">Product Successfully Registered!</h2>
-            <p className="text-xs text-slate-300 max-w-lg mx-auto">
-              Authenticity record with SHA-256 cryptographic signature is permanently bound to the product ID.
-            </p>
+            <h2 className="text-2xl font-extrabold text-white">Product Successfully Registered!</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
-            {/* Metadata Overview */}
-            <div className="glass-card p-6 rounded-2xl border border-slate-800 space-y-3 text-xs">
-              <h4 className="font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800 pb-2">
-                Registered Metadata
+            <div className="bg-[#0A1020] p-5 rounded-xl border border-[#1E2A47] space-y-2 text-xs">
+              <h4 className="font-bold text-slate-200 uppercase tracking-wider border-b border-[#1E2A47] pb-2 font-mono">
+                REGISTERED METADATA
               </h4>
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 <span className="text-slate-400 block">Product Name: <strong className="text-white">{createdProduct.productName}</strong></span>
-                <span className="text-slate-400 block">Product ID: <strong className="text-blue-400 font-mono">{createdProduct.productId}</strong></span>
+                <span className="text-slate-400 block">Product ID: <strong className="text-purple-400 font-mono">{createdProduct.productId}</strong></span>
                 <span className="text-slate-400 block">Serial Number: <strong className="text-white font-mono">{createdProduct.serialNumber}</strong></span>
-                <span className="text-slate-400 block">Batch Number: <strong className="text-white">{createdProduct.batchNumber}</strong></span>
               </div>
 
-              <div className="pt-2 border-t border-slate-800 space-y-1">
-                <span className="text-slate-400 block font-semibold">SHA-256 Cryptographic Hash:</span>
-                <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800 font-mono text-[10px] text-slate-300 break-all flex items-center justify-between">
+              <div className="pt-2 border-t border-[#1E2A47] space-y-1">
+                <span className="text-slate-400 block font-mono text-[10px]">SHA-256 Cryptographic Hash:</span>
+                <div className="bg-[#050816] p-2.5 rounded border border-[#1E2A47] font-mono text-[10px] text-purple-300 break-all flex items-center justify-between">
                   <span>{createdProduct.productHash}</span>
                   <button onClick={() => copyToClipboard(createdProduct.productHash)} className="p-1 text-slate-400 hover:text-white">
                     <Copy className="w-3.5 h-3.5" />
@@ -363,44 +361,43 @@ export default function RegisterProductPage() {
               </div>
             </div>
 
-            {/* QR Code Presentation */}
-            <div className="glass-card p-6 rounded-2xl border border-slate-800 space-y-4 text-center flex flex-col items-center justify-center">
-              <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">Unique QR Code</span>
-              <img src={createdProduct.qrCode} alt="Product QR Code" className="w-36 h-36 bg-white p-2 rounded-xl shadow-md" />
+            <div className="bg-[#0A1020] p-5 rounded-xl border border-[#1E2A47] text-center flex flex-col items-center justify-center space-y-3">
+              <span className="text-xs font-mono font-bold text-slate-200 uppercase tracking-wider">Product QR Code</span>
+              <img src={createdProduct.qrCode} alt="QR Code" className="w-32 h-32 bg-white p-2 rounded-xl border border-slate-700" />
               <div className="flex items-center space-x-2">
                 <a
                   href={createdProduct.qrCode}
                   download={`QR-${createdProduct.productId}.png`}
-                  className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center space-x-1"
+                  className="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold flex items-center space-x-1"
                 >
                   <Download className="w-3.5 h-3.5" />
-                  <span>Download QR</span>
+                  <span>Download</span>
                 </a>
                 <button
                   onClick={() => window.print()}
-                  className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center space-x-1"
+                  className="px-3 py-1.5 rounded-lg bg-[#111B32] hover:bg-[#1E2A47] text-slate-200 text-xs font-bold flex items-center space-x-1 border border-[#1E2A47]"
                 >
                   <Printer className="w-3.5 h-3.5" />
-                  <span>Print Label</span>
+                  <span>Print</span>
                 </button>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-center space-x-4 pt-4">
+          <div className="flex items-center justify-center space-x-3 pt-2">
             <Link
               to={`/verify/${createdProduct.productId}`}
-              className="px-6 py-3 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-500 text-xs flex items-center space-x-2"
+              className="px-5 py-2.5 rounded-xl font-bold text-white bg-purple-600 hover:bg-purple-500 text-xs flex items-center space-x-1.5"
             >
-              <span>Test Verification Page</span>
+              <span>Verify Product Page</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
 
             <Link
               to="/products"
-              className="px-6 py-3 rounded-xl font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 text-xs"
+              className="px-5 py-2.5 rounded-xl font-bold text-slate-300 bg-[#0A1020] hover:bg-[#111B32] border border-[#1E2A47] text-xs"
             >
-              Go to Product Catalog
+              View Catalog
             </Link>
           </div>
         </div>

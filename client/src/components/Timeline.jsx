@@ -6,49 +6,48 @@ export default function Timeline({ product, verifications = [] }) {
 
   if (product) {
     events.push({
-      title: "Product Manufacturing Registered",
+      title: "Product Identity Created",
       description: `Registered by ${product.manufacturer?.companyName || product.manufacturer?.name || "Manufacturer"}. Batch ${product.batchNumber}, Serial ${product.serialNumber}.`,
       timestamp: new Date(product.manufacturingDate || product.createdAt).toLocaleDateString(),
       icon: FileCheck,
-      color: "text-blue-400 bg-blue-500/10 border-blue-500/30",
+      color: "text-purple-400 bg-purple-950/60 border-purple-500/40",
     });
 
     events.push({
-      title: "SHA-256 Digital Fingerprint Generated",
-      description: `Cryptographic Hash: ${product.productHash ? `${product.productHash.substring(0, 18)}...` : "SHA-256 Computed"}`,
+      title: "SHA-256 Digital Signature Generated",
+      description: `Cryptographic Hash: ${product.productHash ? `${product.productHash.substring(0, 24)}...` : "SHA-256 Signature"}`,
       timestamp: new Date(product.createdAt).toLocaleDateString(),
       icon: Shield,
-      color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
+      color: "text-purple-400 bg-purple-950/60 border-purple-500/40",
     });
 
     events.push({
-      title: "Blockchain Authenticity Smart Contract Record Created",
-      description: `Transaction Tx: ${product.transactionHash ? `${product.transactionHash.substring(0, 16)}...` : "Recorded On Ethereum Network"}`,
+      title: "Ethereum Smart Contract On-Chain Record Committed",
+      description: `Transaction Tx: ${product.transactionHash ? `${product.transactionHash.substring(0, 20)}...` : "Committed On-Chain"}`,
       timestamp: new Date(product.createdAt).toLocaleDateString(),
       icon: CheckCircle2,
-      color: "text-purple-400 bg-purple-500/10 border-purple-500/30",
+      color: "text-emerald-400 bg-emerald-950/60 border-emerald-500/40",
     });
 
     events.push({
-      title: "Unique QR Verification Code Generated",
-      description: `Target Verification URL: /verify/${product.productId}`,
+      title: "Unique QR Code Generated",
+      description: `Target Verification Route: /verify/${product.productId}`,
       timestamp: new Date(product.createdAt).toLocaleDateString(),
       icon: QrCode,
-      color: "text-amber-400 bg-amber-500/10 border-amber-500/30",
+      color: "text-cyan-400 bg-cyan-950/60 border-cyan-500/40",
     });
 
     if (product.ownerWallet) {
       events.push({
-        title: "Ownership Wallet Bound",
-        description: `Current Registered Owner Wallet: ${product.ownerWallet.substring(0, 10)}...`,
+        title: "Ownership Bound to Wallet Address",
+        description: `Registered Owner Address: ${product.ownerWallet.substring(0, 14)}...`,
         timestamp: new Date(product.updatedAt || product.createdAt).toLocaleDateString(),
         icon: ArrowRightLeft,
-        color: "text-cyan-400 bg-cyan-500/10 border-cyan-500/30",
+        color: "text-indigo-400 bg-indigo-950/60 border-indigo-500/40",
       });
     }
   }
 
-  // Add customer verification events
   verifications.forEach((v) => {
     events.push({
       title: `Product Scanned & Verified (${v.verificationStatus})`,
@@ -56,32 +55,30 @@ export default function Timeline({ product, verifications = [] }) {
       timestamp: new Date(v.timestamp).toLocaleString(),
       icon: Search,
       color: v.verificationStatus === "SUCCESS"
-        ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/30"
-        : "text-red-400 bg-red-500/10 border-red-500/30",
+        ? "text-emerald-400 bg-emerald-950/60 border-emerald-500/40"
+        : "text-red-400 bg-red-950/60 border-red-500/40",
     });
   });
 
   return (
-    <div className="relative pl-6 border-l-2 border-slate-800 space-y-6 my-4">
+    <div className="relative pl-6 border-l border-[#1E2A47] space-y-4 my-3 text-xs">
       {events.map((evt, idx) => {
         const Icon = evt.icon;
         return (
           <div key={idx} className="relative group">
-            {/* Dot icon */}
-            <div className={`absolute -left-[35px] top-0.5 w-8 h-8 rounded-full border flex items-center justify-center ${evt.color}`}>
-              <Icon className="w-4 h-4" />
+            <div className={`absolute -left-[33px] top-1 w-7 h-7 rounded-lg border flex items-center justify-center ${evt.color}`}>
+              <Icon className="w-3.5 h-3.5" />
             </div>
 
-            {/* Event content */}
-            <div className="glass-card p-4 rounded-xl border border-slate-800 space-y-1">
+            <div className="bg-[#0A1020] p-3.5 rounded-xl border border-[#1E2A47] space-y-1">
               <div className="flex items-center justify-between">
-                <h4 className="text-sm font-bold text-slate-100">{evt.title}</h4>
-                <span className="text-[11px] text-slate-400 flex items-center space-x-1">
+                <h4 className="font-mono font-bold text-white text-xs">{evt.title}</h4>
+                <span className="text-[10px] font-mono text-slate-500 flex items-center space-x-1">
                   <Clock className="w-3 h-3" />
                   <span>{evt.timestamp}</span>
                 </span>
               </div>
-              <p className="text-xs text-slate-400 leading-relaxed">{evt.description}</p>
+              <p className="text-[11px] text-slate-400 leading-relaxed font-mono">{evt.description}</p>
             </div>
           </div>
         );
