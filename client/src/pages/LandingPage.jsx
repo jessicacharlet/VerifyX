@@ -501,35 +501,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ---------------------------------------------------- */}
-      {/* FINAL CTA */}
-      {/* ---------------------------------------------------- */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="glass-panel p-8 rounded-2xl border border-purple-500/20 text-center space-y-4">
-          <h2 className="text-2xl font-extrabold text-white">Verify Product Authenticity</h2>
-          <p className="text-xs text-slate-300 max-w-md mx-auto">
-            Check a product against its blockchain-backed authenticity record.
-          </p>
-
-          <div className="flex items-center justify-center space-x-3 pt-2">
-            <Link
-              to="/verify"
-              className="px-6 py-2.5 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-md shadow-purple-600/20"
-            >
-              Verify Product
-            </Link>
-            <a
-              href="https://github.com/jessicacharlet/VerifyX"
-              target="_blank"
-              rel="noreferrer"
-              className="px-6 py-2.5 rounded-xl font-semibold text-xs text-slate-300 bg-slate-900 hover:bg-slate-800 border border-slate-800 inline-flex items-center space-x-1.5"
-            >
-              <Github className="w-3.5 h-3.5" />
-              <span>View Project</span>
-            </a>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }
