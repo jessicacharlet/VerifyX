@@ -1,0 +1,28 @@
+{
+  "name": "verimark-workspace",
+  "version": "1.0.0",
+  "description": "VeriMark - Blockchain-Based Product Authentication System",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install && npm --prefix server install && npm --prefix client install && npm --prefix blockchain install",
+    "seed": "node server/scripts/seed.js",
+    "server": "npm --prefix server start",
+    "client": "npm --prefix client run dev",
+    "hardhat:node": "npm --prefix blockchain run node",
+    "hardhat:test": "npm --prefix blockchain run test",
+    "hardhat:deploy": "npm --prefix blockchain run deploy",
+    "test:server": "npm --prefix server run test"
+  },
+  "keywords": [
+    "blockchain",
+    "ethereum",
+    "solidity",
+    "product-authentication",
+    "sha256",
+    "express",
+    "react",
+    "mongodb"
+  ],
+  "author": "VeriMark Team",
+  "license": "ISC"
+}
