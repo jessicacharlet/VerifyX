@@ -1,42 +1,46 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Shield, Github, ExternalLink } from "lucide-react";
+import { ShieldCheck, Github, ExternalLink } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer className="border-t border-purple-500/20 bg-slate-950/90 text-slate-400 py-8 px-4 sm:px-6 lg:px-8 mt-16">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-        {/* Logo & Tagline */}
-        <div className="flex items-center space-x-3 text-center md:text-left">
-          <div className="w-7 h-7 rounded-md bg-purple-600 flex items-center justify-center text-white">
-            <Shield className="w-4 h-4" />
+    <footer className="bg-[#05070D] border-t border-[#1D2938] mt-16 text-[#8B98AA] text-xs">
+      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center space-x-2.5">
+            <div className="w-7 h-7 rounded bg-[#06b6d4] flex items-center justify-center text-[#05070D]">
+              <ShieldCheck className="w-4 h-4 font-bold" />
+            </div>
+            <span className="font-extrabold text-white text-sm tracking-tight">VerifyX</span>
+            <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-500/30">
+              v1.0
+            </span>
           </div>
-          <div>
-            <span className="text-sm font-extrabold text-white">VeriMark</span>
-            <span className="text-xs text-slate-500 block">Blockchain-Based Product Authentication System</span>
+
+          <p className="text-center text-[11px] font-mono">
+            Cryptographic Product Authenticity Platform • Ethereum Smart Contract Ledger & SHA-256 Hashing
+          </p>
+
+          <div className="flex items-center space-x-4">
+            <a
+              href="https://github.com/jessicacharlet/VerifyX"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center space-x-1.5 text-slate-300 hover:text-cyan-400 transition-colors font-mono"
+            >
+              <Github className="w-3.5 h-3.5" />
+              <span>VerifyX GitHub</span>
+            </a>
           </div>
         </div>
 
-        {/* Links */}
-        <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-medium text-slate-300">
-          <Link to="/" className="hover:text-purple-400 transition-colors">Home</Link>
-          <a href="#project-overview" className="hover:text-purple-400 transition-colors">Project</a>
-          <Link to="/verify" className="hover:text-purple-400 transition-colors">Verification</Link>
-          <a href="#technology-stack" className="hover:text-purple-400 transition-colors">Technology</a>
-          <a
-            href="https://github.com/jessicacharlet/VerifyX"
-            target="_blank"
-            rel="noreferrer"
-            className="hover:text-purple-400 transition-colors flex items-center space-x-1"
-          >
-            <Github className="w-3.5 h-3.5" />
-            <span>GitHub</span>
-          </a>
-        </div>
-
-        {/* Copyright */}
-        <div className="text-[11px] text-slate-500 font-mono text-center md:text-right">
-          © {new Date().getFullYear()} VeriMark. Built for Technical Portfolio.
+        <div className="mt-6 pt-4 border-t border-[#1D2938]/60 flex flex-col sm:flex-row items-center justify-between gap-2 text-[10px] text-slate-500 font-mono">
+          <div>© {new Date().getFullYear()} VerifyX System. All rights reserved.</div>
+          <div className="flex items-center space-x-4">
+            <Link to="/verify" className="hover:text-slate-300">Public Verification Portal</Link>
+            <Link to="/products" className="hover:text-slate-300">Catalog</Link>
+            <Link to="/login" className="hover:text-slate-300">Manufacturer Login</Link>
+          </div>
         </div>
       </div>
     </footer>

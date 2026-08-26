@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Shield, Mail, Lock, User, Building, Phone, Wallet, AlertCircle, ArrowRight } from "lucide-react";
+import { ShieldCheck, Mail, Lock, User, Building, Phone, Wallet, AlertCircle, ArrowRight } from "lucide-react";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -48,21 +48,21 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center px-4 py-12 bg-[#050816]">
+    <div className="min-h-[85vh] flex items-center justify-center px-4 py-12 bg-[#05070D]">
       <div className="w-full max-w-lg space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-purple-600 flex items-center justify-center text-white mx-auto shadow-md shadow-purple-600/30 border border-purple-400/30">
-            <Shield className="w-7 h-7" />
+          <div className="w-12 h-12 rounded-xl bg-[#06b6d4] flex items-center justify-center text-[#05070D] mx-auto shadow-md shadow-cyan-500/20 border border-cyan-400/40">
+            <ShieldCheck className="w-7 h-7 font-bold" />
           </div>
           <h2 className="text-2xl font-extrabold text-white tracking-tight">Create Account</h2>
-          <p className="text-xs text-slate-400">Register your brand to sign items on the Ethereum blockchain</p>
+          <p className="text-xs text-[#8B98AA]">Register your brand to sign items on the Ethereum blockchain</p>
         </div>
 
         {/* Card */}
-        <div className="bg-[#0D1528] p-8 rounded-2xl border border-[#1E2A47] space-y-6 shadow-xl">
+        <div className="bg-[#101722] p-8 rounded-xl border border-[#1D2938] space-y-6 shadow-xl">
           {error && (
-            <div className="p-3 rounded-xl bg-red-950/60 border border-red-500/40 text-xs text-red-300 flex items-start space-x-2">
+            <div className="p-3 rounded-md bg-red-950/60 border border-red-500/40 text-xs text-red-300 flex items-start space-x-2">
               <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
@@ -80,9 +80,9 @@ export default function RegisterPage() {
                     onChange={handleChange}
                     placeholder="John Doe"
                     required
-                    className="w-full px-4 py-3 pl-10 rounded-xl bg-[#0A1020] border border-[#1E2A47] text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                    className="w-full px-4 py-3 pl-10 rounded-md bg-[#0B111B] border border-[#1D2938] text-white placeholder-[#8B98AA] focus:outline-none focus:border-cyan-500"
                   />
-                  <User className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
+                  <User className="w-4 h-4 text-[#8B98AA] absolute left-3.5 top-3.5" />
                 </div>
               </div>
 
@@ -95,9 +95,9 @@ export default function RegisterPage() {
                     value={formData.companyName}
                     onChange={handleChange}
                     placeholder="Acme Luxury Corp"
-                    className="w-full px-4 py-3 pl-10 rounded-xl bg-[#0A1020] border border-[#1E2A47] text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                    className="w-full px-4 py-3 pl-10 rounded-md bg-[#0B111B] border border-[#1D2938] text-white placeholder-[#8B98AA] focus:outline-none focus:border-cyan-500"
                   />
-                  <Building className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
+                  <Building className="w-4 h-4 text-[#8B98AA] absolute left-3.5 top-3.5" />
                 </div>
               </div>
             </div>
@@ -112,9 +112,9 @@ export default function RegisterPage() {
                   onChange={handleChange}
                   placeholder="manufacturer@company.com"
                   required
-                  className="w-full px-4 py-3 pl-10 rounded-xl bg-[#0A1020] border border-[#1E2A47] text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                  className="w-full px-4 py-3 pl-10 rounded-md bg-[#0B111B] border border-[#1D2938] text-white placeholder-[#8B98AA] focus:outline-none focus:border-cyan-500"
                 />
-                <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
+                <Mail className="w-4 h-4 text-[#8B98AA] absolute left-3.5 top-3.5" />
               </div>
             </div>
 
@@ -128,9 +128,9 @@ export default function RegisterPage() {
                   onChange={handleChange}
                   placeholder="Min 6 characters"
                   required
-                  className="w-full px-4 py-3 pl-10 rounded-xl bg-[#0A1020] border border-[#1E2A47] text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                  className="w-full px-4 py-3 pl-10 rounded-md bg-[#0B111B] border border-[#1D2938] text-white placeholder-[#8B98AA] focus:outline-none focus:border-cyan-500"
                 />
-                <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
+                <Lock className="w-4 h-4 text-[#8B98AA] absolute left-3.5 top-3.5" />
               </div>
             </div>
 
@@ -143,16 +143,16 @@ export default function RegisterPage() {
                   value={formData.walletAddress}
                   onChange={handleChange}
                   placeholder="0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
-                  className="w-full px-4 py-3 pl-10 rounded-xl bg-[#0A1020] border border-[#1E2A47] text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 font-mono text-[11px]"
+                  className="w-full px-4 py-3 pl-10 rounded-md bg-[#0B111B] border border-[#1D2938] text-white placeholder-[#8B98AA] focus:outline-none focus:border-cyan-500 font-mono text-[11px]"
                 />
-                <Wallet className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
+                <Wallet className="w-4 h-4 text-[#8B98AA] absolute left-3.5 top-3.5" />
               </div>
             </div>
 
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-md shadow-purple-600/20 border border-purple-400/30 flex items-center justify-center space-x-2 transition-all mt-4"
+              className="w-full py-3.5 rounded-md font-bold text-[#05070D] bg-[#06b6d4] hover:bg-[#22d3ee] shadow-md shadow-cyan-500/20 border border-cyan-400/40 flex items-center justify-center space-x-2 transition-all mt-4"
             >
               <span>{isSubmitting ? "Creating Account..." : "Complete Registration"}</span>
               <ArrowRight className="w-4 h-4" />
@@ -160,9 +160,9 @@ export default function RegisterPage() {
           </form>
         </div>
 
-        <p className="text-center text-xs text-slate-400">
+        <p className="text-center text-xs text-[#8B98AA]">
           Already registered?{" "}
-          <Link to="/login" className="text-purple-400 hover:underline font-bold">
+          <Link to="/login" className="text-cyan-400 hover:underline font-bold">
             Sign In
           </Link>
         </p>

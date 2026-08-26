@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import API from "../services/api";
 import { useWeb3 } from "../context/Web3Context";
 import {
-  Shield,
+  ShieldCheck,
   Package,
   QrCode,
   Lock,
@@ -119,64 +119,64 @@ export default function RegisterProductPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 space-y-8 bg-[#050816]">
+    <div className="max-w-4xl mx-auto px-4 py-8 space-y-8 bg-[#05070D]">
       {/* Header */}
       <div className="text-center space-y-2">
-        <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400 text-xs font-mono font-semibold">
+        <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-400 text-xs font-mono font-semibold">
           <Cpu className="w-3.5 h-3.5" />
-          <span>SOLICITY SMART CONTRACT REGISTRATION</span>
+          <span>SOLIDITY SMART CONTRACT REGISTRATION</span>
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-white">Register Product Metadata</h1>
-        <p className="text-xs text-slate-400 max-w-md mx-auto">
+        <p className="text-xs text-[#8B98AA] max-w-md mx-auto">
           Generate SHA-256 digital signatures and register item records on the Ethereum blockchain.
         </p>
       </div>
 
       {step < 3 && (
-        <form onSubmit={handleSubmitProduct} className="bg-[#0D1528] p-6 sm:p-8 rounded-2xl border border-[#1E2A47] space-y-6 shadow-xl">
+        <form onSubmit={handleSubmitProduct} className="bg-[#101722] p-6 sm:p-8 rounded-xl border border-[#1D2938] space-y-6 shadow-xl">
           {error && (
-            <div className="p-3 rounded-xl bg-red-950/60 border border-red-500/40 text-xs text-red-300 flex items-start space-x-2">
+            <div className="p-3 rounded-md bg-red-950/60 border border-red-500/40 text-xs text-red-300 flex items-start space-x-2">
               <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
           )}
 
           {/* VISUALLY DISTINCT BLOCKCHAIN REGISTRATION SECTION */}
-          <div className="bg-[#0A1020] p-5 rounded-xl border border-purple-500/30 space-y-3">
-            <div className="flex items-center justify-between border-b border-[#1E2A47] pb-3">
+          <div className="bg-[#0B111B] p-5 rounded-lg border border-cyan-500/30 space-y-3">
+            <div className="flex items-center justify-between border-b border-[#1D2938] pb-3">
               <div className="flex items-center space-x-2">
-                <Cpu className="w-4 h-4 text-purple-400" />
+                <Cpu className="w-4 h-4 text-cyan-400" />
                 <span className="text-xs font-mono font-bold text-white uppercase tracking-wider">
                   BLOCKCHAIN REGISTRATION
                 </span>
               </div>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-950/60 text-purple-400 border border-purple-500/30">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950/60 text-cyan-400 border border-cyan-500/30">
                 Ethereum Paris / Hardhat 31337
               </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-mono">
-              <div className="bg-[#050816] p-3 rounded-lg border border-[#1E2A47] space-y-1">
-                <span className="text-slate-500 text-[10px] block">Wallet Status</span>
+              <div className="bg-[#05070D] p-3 rounded border border-[#1D2938] space-y-1">
+                <span className="text-[#8B98AA] text-[10px] block">Wallet Status</span>
                 <span className={`font-bold block ${account ? "text-emerald-400" : "text-amber-400"}`}>
-                  {account ? "● Connected" : "Wallet Disconnected"}
+                  {account ? "● Wallet Connected" : "Wallet Disconnected"}
                 </span>
               </div>
 
-              <div className="bg-[#050816] p-3 rounded-lg border border-[#1E2A47] space-y-1 sm:col-span-2">
+              <div className="bg-[#05070D] p-3 rounded border border-[#1D2938] space-y-1 sm:col-span-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[10px]">Connected Wallet Address</span>
+                  <span className="text-[#8B98AA] text-[10px]">Connected Wallet Address</span>
                   {!account && (
                     <button
                       type="button"
                       onClick={connectWallet}
-                      className="text-[10px] text-purple-400 hover:underline font-bold"
+                      className="text-[10px] text-cyan-400 hover:underline font-bold"
                     >
                       Connect MetaMask
                     </button>
                   )}
                 </div>
-                <span className="text-slate-200 text-[11px] truncate block">
+                <span className="text-slate-200 text-[11px] truncate block font-mono">
                   {account ? account : "0x70997970C51812dc3A010C7d01b50e0d17dc79C8 (Server Signer)"}
                 </span>
               </div>
@@ -193,7 +193,7 @@ export default function RegisterProductPage() {
                 value={formData.productId}
                 onChange={handleChange}
                 required
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#0A1020] border border-[#1E2A47] text-white font-mono text-xs focus:outline-none focus:border-purple-500"
+                className="w-full px-3.5 py-2.5 rounded-md bg-[#0B111B] border border-[#1D2938] text-white font-mono text-xs focus:outline-none focus:border-cyan-500"
               />
             </div>
 
@@ -206,7 +206,7 @@ export default function RegisterProductPage() {
                 onChange={handleChange}
                 placeholder="e.g. AirPods Pro (2nd Gen)"
                 required
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#0A1020] border border-[#1E2A47] text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                className="w-full px-3.5 py-2.5 rounded-md bg-[#0B111B] border border-[#1D2938] text-white placeholder-[#8B98AA] focus:outline-none focus:border-cyan-500"
               />
             </div>
 
@@ -219,7 +219,7 @@ export default function RegisterProductPage() {
                 onChange={handleChange}
                 placeholder="e.g. Apple Inc."
                 required
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#0A1020] border border-[#1E2A47] text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                className="w-full px-3.5 py-2.5 rounded-md bg-[#0B111B] border border-[#1D2938] text-white placeholder-[#8B98AA] focus:outline-none focus:border-cyan-500"
               />
             </div>
 
@@ -229,7 +229,7 @@ export default function RegisterProductPage() {
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#0A1020] border border-[#1E2A47] text-white focus:outline-none focus:border-purple-500"
+                className="w-full px-3.5 py-2.5 rounded-md bg-[#0B111B] border border-[#1D2938] text-white focus:outline-none focus:border-cyan-500"
               >
                 <option value="Electronics">Electronics</option>
                 <option value="Smartphones">Smartphones</option>
@@ -248,7 +248,7 @@ export default function RegisterProductPage() {
                 value={formData.batchNumber}
                 onChange={handleChange}
                 required
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#0A1020] border border-[#1E2A47] text-white font-mono text-xs focus:outline-none focus:border-purple-500"
+                className="w-full px-3.5 py-2.5 rounded-md bg-[#0B111B] border border-[#1D2938] text-white font-mono text-xs focus:outline-none focus:border-cyan-500"
               />
             </div>
 
@@ -260,7 +260,7 @@ export default function RegisterProductPage() {
                 value={formData.serialNumber}
                 onChange={handleChange}
                 required
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#0A1020] border border-[#1E2A47] text-white font-mono text-xs focus:outline-none focus:border-purple-500"
+                className="w-full px-3.5 py-2.5 rounded-md bg-[#0B111B] border border-[#1D2938] text-white font-mono text-xs focus:outline-none focus:border-cyan-500"
               />
             </div>
 
@@ -272,7 +272,7 @@ export default function RegisterProductPage() {
                 value={formData.manufacturingDate}
                 onChange={handleChange}
                 required
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#0A1020] border border-[#1E2A47] text-white focus:outline-none focus:border-purple-500"
+                className="w-full px-3.5 py-2.5 rounded-md bg-[#0B111B] border border-[#1D2938] text-white focus:outline-none focus:border-cyan-500"
               />
             </div>
 
@@ -283,7 +283,7 @@ export default function RegisterProductPage() {
                 name="expiryDate"
                 value={formData.expiryDate}
                 onChange={handleChange}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#0A1020] border border-[#1E2A47] text-white focus:outline-none focus:border-purple-500"
+                className="w-full px-3.5 py-2.5 rounded-md bg-[#0B111B] border border-[#1D2938] text-white focus:outline-none focus:border-cyan-500"
               />
             </div>
 
@@ -295,20 +295,20 @@ export default function RegisterProductPage() {
                 value={formData.description}
                 onChange={handleChange}
                 placeholder="Product technical specs..."
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#0A1020] border border-[#1E2A47] text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                className="w-full px-3.5 py-2.5 rounded-md bg-[#0B111B] border border-[#1D2938] text-white placeholder-[#8B98AA] focus:outline-none focus:border-cyan-500"
               ></textarea>
             </div>
 
             <div className="col-span-1 sm:col-span-2 space-y-1.5">
               <label className="font-bold text-slate-300 uppercase tracking-wider block">Product Image</label>
               <div className="flex items-center space-x-4">
-                <label className="cursor-pointer px-4 py-2.5 rounded-xl bg-[#0A1020] hover:bg-[#111B32] border border-[#1E2A47] text-slate-300 font-semibold flex items-center space-x-2 transition-colors">
-                  <Upload className="w-4 h-4 text-purple-400" />
+                <label className="cursor-pointer px-4 py-2.5 rounded-md bg-[#0B111B] hover:bg-[#1B2738] border border-[#1D2938] text-slate-300 font-semibold flex items-center space-x-2 transition-colors">
+                  <Upload className="w-4 h-4 text-cyan-400" />
                   <span>Upload Image File</span>
                   <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
                 </label>
                 {imagePreview && (
-                  <img src={imagePreview} alt="Preview" className="w-12 h-12 rounded-lg object-cover border border-[#1E2A47]" />
+                  <img src={imagePreview} alt="Preview" className="w-12 h-12 rounded-md object-cover border border-[#1D2938]" />
                 )}
               </div>
             </div>
@@ -317,7 +317,7 @@ export default function RegisterProductPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-md shadow-purple-600/20 border border-purple-400/30 flex items-center justify-center space-x-2 transition-all text-xs"
+            className="w-full py-3.5 rounded-md font-bold text-[#05070D] bg-[#06b6d4] hover:bg-[#22d3ee] shadow-md shadow-cyan-500/20 border border-cyan-400/40 flex items-center justify-center space-x-2 transition-all text-xs"
           >
             <Lock className="w-4 h-4" />
             <span>{isSubmitting ? "Generating SHA-256 & Signing Contract..." : "Register Product & Mint On-Chain Record"}</span>
@@ -327,8 +327,8 @@ export default function RegisterProductPage() {
 
       {/* STEP 3 SUCCESS RESULT */}
       {step === 3 && createdProduct && (
-        <div className="bg-[#0D1528] p-8 rounded-2xl border border-emerald-500/40 space-y-6 text-center shadow-xl">
-          <div className="w-14 h-14 rounded-2xl bg-emerald-950/60 text-emerald-400 border border-emerald-500/40 flex items-center justify-center mx-auto">
+        <div className="bg-[#101722] p-8 rounded-xl border border-emerald-500/40 space-y-6 text-center shadow-xl">
+          <div className="w-14 h-14 rounded-xl bg-emerald-950/60 text-emerald-400 border border-emerald-500/40 flex items-center justify-center mx-auto">
             <CheckCircle className="w-8 h-8" />
           </div>
 
@@ -340,42 +340,42 @@ export default function RegisterProductPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
-            <div className="bg-[#0A1020] p-5 rounded-xl border border-[#1E2A47] space-y-2 text-xs">
-              <h4 className="font-bold text-slate-200 uppercase tracking-wider border-b border-[#1E2A47] pb-2 font-mono">
+            <div className="bg-[#0B111B] p-5 rounded-md border border-[#1D2938] space-y-2 text-xs">
+              <h4 className="font-bold text-slate-200 uppercase tracking-wider border-b border-[#1D2938] pb-2 font-mono">
                 REGISTERED METADATA
               </h4>
               <div className="space-y-1">
-                <span className="text-slate-400 block">Product Name: <strong className="text-white">{createdProduct.productName}</strong></span>
-                <span className="text-slate-400 block">Product ID: <strong className="text-purple-400 font-mono">{createdProduct.productId}</strong></span>
-                <span className="text-slate-400 block">Serial Number: <strong className="text-white font-mono">{createdProduct.serialNumber}</strong></span>
+                <span className="text-[#8B98AA] block">Product Name: <strong className="text-white">{createdProduct.productName}</strong></span>
+                <span className="text-[#8B98AA] block">Product ID: <strong className="text-cyan-400 font-mono">{createdProduct.productId}</strong></span>
+                <span className="text-[#8B98AA] block">Serial Number: <strong className="text-white font-mono">{createdProduct.serialNumber}</strong></span>
               </div>
 
-              <div className="pt-2 border-t border-[#1E2A47] space-y-1">
-                <span className="text-slate-400 block font-mono text-[10px]">SHA-256 Cryptographic Hash:</span>
-                <div className="bg-[#050816] p-2.5 rounded border border-[#1E2A47] font-mono text-[10px] text-purple-300 break-all flex items-center justify-between">
+              <div className="pt-2 border-t border-[#1D2938] space-y-1">
+                <span className="text-[#8B98AA] block font-mono text-[10px]">SHA-256 Cryptographic Hash:</span>
+                <div className="bg-[#05070D] p-2.5 rounded border border-[#1D2938] font-mono text-[10px] text-cyan-300 break-all flex items-center justify-between">
                   <span>{createdProduct.productHash}</span>
-                  <button onClick={() => copyToClipboard(createdProduct.productHash)} className="p-1 text-slate-400 hover:text-white">
+                  <button onClick={() => copyToClipboard(createdProduct.productHash)} className="p-1 text-[#8B98AA] hover:text-white">
                     <Copy className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
             </div>
 
-            <div className="bg-[#0A1020] p-5 rounded-xl border border-[#1E2A47] text-center flex flex-col items-center justify-center space-y-3">
+            <div className="bg-[#0B111B] p-5 rounded-md border border-[#1D2938] text-center flex flex-col items-center justify-center space-y-3">
               <span className="text-xs font-mono font-bold text-slate-200 uppercase tracking-wider">Product QR Code</span>
-              <img src={createdProduct.qrCode} alt="QR Code" className="w-32 h-32 bg-white p-2 rounded-xl border border-slate-700" />
+              <img src={createdProduct.qrCode} alt="QR Code" className="w-32 h-32 bg-white p-2 rounded-md border border-slate-700" />
               <div className="flex items-center space-x-2">
                 <a
                   href={createdProduct.qrCode}
                   download={`QR-${createdProduct.productId}.png`}
-                  className="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold flex items-center space-x-1"
+                  className="px-3 py-1.5 rounded-md bg-[#06b6d4] text-[#05070D] text-xs font-bold flex items-center space-x-1"
                 >
                   <Download className="w-3.5 h-3.5" />
                   <span>Download</span>
                 </a>
                 <button
                   onClick={() => window.print()}
-                  className="px-3 py-1.5 rounded-lg bg-[#111B32] hover:bg-[#1E2A47] text-slate-200 text-xs font-bold flex items-center space-x-1 border border-[#1E2A47]"
+                  className="px-3 py-1.5 rounded-md bg-[#101722] hover:bg-[#1B2738] text-slate-200 text-xs font-bold flex items-center space-x-1 border border-[#1D2938]"
                 >
                   <Printer className="w-3.5 h-3.5" />
                   <span>Print</span>
@@ -387,7 +387,7 @@ export default function RegisterProductPage() {
           <div className="flex items-center justify-center space-x-3 pt-2">
             <Link
               to={`/verify/${createdProduct.productId}`}
-              className="px-5 py-2.5 rounded-xl font-bold text-white bg-purple-600 hover:bg-purple-500 text-xs flex items-center space-x-1.5"
+              className="px-5 py-2.5 rounded-md font-bold text-[#05070D] bg-[#06b6d4] hover:bg-[#22d3ee] text-xs flex items-center space-x-1.5"
             >
               <span>Verify Product Page</span>
               <ArrowRight className="w-4 h-4" />
@@ -395,7 +395,7 @@ export default function RegisterProductPage() {
 
             <Link
               to="/products"
-              className="px-5 py-2.5 rounded-xl font-bold text-slate-300 bg-[#0A1020] hover:bg-[#111B32] border border-[#1E2A47] text-xs"
+              className="px-5 py-2.5 rounded-md font-bold text-slate-300 bg-[#0B111B] hover:bg-[#1B2738] border border-[#1D2938] text-xs"
             >
               View Catalog
             </Link>

@@ -7,10 +7,9 @@ const API = axios.create({
   },
 });
 
-// Interceptor to attach JWT token to every outgoing request
 API.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("verimark_token");
+    const token = localStorage.getItem("verifyx_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

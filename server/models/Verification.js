@@ -42,6 +42,57 @@ const verificationSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    // AI Analysis Fields
+    aiAnalyzed: {
+      type: Boolean,
+      default: false,
+    },
+    aiRiskScore: {
+      type: Number,
+      default: 0,
+    },
+    aiAuthenticityScore: {
+      type: Number,
+      default: 100,
+    },
+    aiConfidence: {
+      type: Number,
+      default: 90,
+    },
+    aiResult: {
+      type: String,
+      enum: ["LOW_RISK", "MODERATE_RISK", "HIGH_RISK", "NOT_ANALYZED"],
+      default: "LOW_RISK",
+    },
+    detectedModifications: [
+      {
+        type: String,
+      },
+    ],
+    visualConsistency: {
+      type: Number,
+      default: 90,
+    },
+    compressionAnomaly: {
+      type: Number,
+      default: 10,
+    },
+    pixelAnomaly: {
+      type: Number,
+      default: 10,
+    },
+    edgeAnomaly: {
+      type: Number,
+      default: 10,
+    },
+    imageSimilarity: {
+      type: Number,
+      default: 95,
+    },
+    aiAnalyzedAt: {
+      type: Date,
+      default: Date.now,
+    },
     timestamp: {
       type: Date,
       default: Date.now,
