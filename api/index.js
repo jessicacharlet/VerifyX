@@ -12,7 +12,7 @@ const blockchainRoutes = require("../server/routes/blockchainRoutes");
 
 const app = express();
 
-// Enable CORS for Vercel Serverless Functions (allow origin dynamically)
+// Enable CORS for Vercel Serverless Functions
 app.use(
   cors({
     origin: true,
@@ -56,7 +56,11 @@ async function connectToDatabase() {
 
 // Middleware to ensure DB connection attempt per serverless invocation
 app.use(async (req, res, next) => {
-  await connectToDatabase();
+  try {
+    await connectToDatabase();
+  } catch (err) {
+    console.error("Serverless middleware DB connect error:", err.message);
+  }
   next();
 });
 
