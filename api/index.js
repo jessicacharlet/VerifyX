@@ -32,6 +32,7 @@ app.use("/uploads", express.static(uploadsPath));
 
 // Serverless MongoDB Connection Caching
 let cachedDb = null;
+let lastDbError = null;
 
 async function connectToDatabase() {
   if (cachedDb && mongoose.connection.readyState === 1) {
@@ -46,9 +47,11 @@ async function connectToDatabase() {
       bufferCommands: false,
     });
     cachedDb = db;
+    lastDbError = null;
     console.log("✅ Serverless MongoDB connected successfully");
     return cachedDb;
   } catch (err) {
+    lastDbError = err.message;
     console.error("⚠️ Serverless MongoDB connection error:", err.message);
     return null;
   }
@@ -59,6 +62,7 @@ app.use(async (req, res, next) => {
   try {
     await connectToDatabase();
   } catch (err) {
+    lastDbError = err.message;
     console.error("Serverless middleware DB connect error:", err.message);
   }
   next();
@@ -79,6 +83,7 @@ app.get("/api/health", (req, res) => {
     timestamp: new Date(),
     environment: process.env.NODE_ENV || "production",
     dbConnected: mongoose.connection.readyState === 1,
+    dbError: lastDbError,
   });
 });
 
