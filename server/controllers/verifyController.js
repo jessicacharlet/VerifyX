@@ -207,7 +207,25 @@ const getProductVerificationHistory = async (req, res) => {
   }
 };
 
+// @desc    Get verification by product ID URL param
+// @route   GET /api/verify/:productId
+// @access  Public
+const getVerificationByProductId = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    req.body = { productId };
+    return await verifyProduct(req, res);
+  } catch (error) {
+    console.error("Get Verification Error:", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const getProductHistory = getProductVerificationHistory;
+
 module.exports = {
   verifyProduct,
+  getVerificationByProductId,
   getProductVerificationHistory,
+  getProductHistory,
 };

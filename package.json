@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "install:all": "npm install && npm --prefix server install && npm --prefix client install && npm --prefix blockchain install",
+    "vercel-build": "npm run install:all && npm --prefix client run build",
     "seed": "node server/scripts/seed.js",
     "server": "npm --prefix server start",
     "client": "npm --prefix client run dev",

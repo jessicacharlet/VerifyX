@@ -12,6 +12,9 @@ import {
   RefreshCw,
   Cpu,
   Package,
+  ShieldCheck,
+  Check,
+  Copy,
 } from "lucide-react";
 
 export default function ProductsPage() {
@@ -81,25 +84,29 @@ export default function ProductsPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-6 bg-[#070A0F]">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[#202A36] pb-4">
-        <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Products</h1>
-          <p className="text-xs text-[#8B97A7] mt-0.5">
-            Registered product catalog and blockchain ownership records.
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[#1E293B] pb-4">
+        <div className="space-y-1">
+          <div className="inline-flex items-center space-x-1.5 text-xs font-mono text-cyan-400">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>AUTHENTICITY LEDGER</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">Registered Products</h1>
+          <p className="text-xs text-[#94A3B8]">
+            Catalog of products registered on Ethereum smart contract with SHA-256 signatures.
           </p>
         </div>
 
         <Link
           to="/register-product"
-          className="px-4 py-2 rounded font-bold text-xs text-[#070A0F] bg-[#06b6d4] hover:bg-[#0891b2] transition-colors border border-cyan-400/30 flex items-center space-x-1.5"
+          className="px-4 py-2.5 rounded-lg font-bold text-xs text-[#070A0F] bg-cyan-400 hover:bg-cyan-300 transition-all border border-cyan-300/40 shadow-sm flex items-center space-x-2"
         >
           <PlusCircle className="w-4 h-4" />
-          <span>Register product</span>
+          <span>Register Product</span>
         </Link>
       </div>
 
-      {/* Toolbar */}
-      <div className="bg-[#0D121A] p-3 rounded-lg border border-[#202A36] grid grid-cols-1 sm:grid-cols-12 gap-3 text-xs">
+      {/* Toolbar & Filters */}
+      <div className="bg-[#0D121A] p-4 rounded-xl border border-[#1E293B] grid grid-cols-1 sm:grid-cols-12 gap-3 text-xs shadow-md">
         <div className="sm:col-span-5 relative">
           <input
             type="text"
@@ -109,9 +116,9 @@ export default function ProductsPage() {
               setPage(1);
             }}
             placeholder="Search product ID, name, serial number..."
-            className="w-full px-3 py-2 pl-9 rounded bg-[#111821] border border-[#202A36] text-white placeholder-[#8B97A7] focus:outline-none focus:border-cyan-500"
+            className="w-full px-3.5 py-2.5 pl-9 rounded-lg bg-[#111821] border border-[#1E293B] text-white placeholder-[#64748B] focus:outline-none focus:border-cyan-400 font-mono text-xs"
           />
-          <Search className="w-4 h-4 text-[#8B97A7] absolute left-3 top-2.5" />
+          <Search className="w-4 h-4 text-[#94A3B8] absolute left-3 top-3" />
         </div>
 
         <div className="sm:col-span-3">
@@ -121,9 +128,9 @@ export default function ProductsPage() {
               setCategory(e.target.value);
               setPage(1);
             }}
-            className="w-full px-3 py-2 rounded bg-[#111821] border border-[#202A36] text-white focus:outline-none focus:border-cyan-500"
+            className="w-full px-3.5 py-2.5 rounded-lg bg-[#111821] border border-[#1E293B] text-white focus:outline-none focus:border-cyan-400 font-mono text-xs"
           >
-            <option value="ALL">All categories</option>
+            <option value="ALL">All Categories</option>
             <option value="Electronics">Electronics</option>
             <option value="Smartphones">Smartphones</option>
             <option value="Audio">Audio</option>
@@ -139,9 +146,9 @@ export default function ProductsPage() {
               setStatus(e.target.value);
               setPage(1);
             }}
-            className="w-full px-3 py-2 rounded bg-[#111821] border border-[#202A36] text-white focus:outline-none focus:border-cyan-500"
+            className="w-full px-3.5 py-2.5 rounded-lg bg-[#111821] border border-[#1E293B] text-white focus:outline-none focus:border-cyan-400 font-mono text-xs"
           >
-            <option value="ALL">All statuses</option>
+            <option value="ALL">All Statuses</option>
             <option value="AUTHENTIC">Authentic</option>
             <option value="ACTIVE">Active</option>
             <option value="RECALLED">Recalled</option>
@@ -152,55 +159,55 @@ export default function ProductsPage() {
         <div className="sm:col-span-1 flex items-center justify-center">
           <button
             onClick={fetchProducts}
-            className="p-2 rounded bg-[#111821] hover:bg-[#202A36] border border-[#202A36] text-[#8B97A7] hover:text-white"
-            title="Refresh list"
+            className="p-2.5 rounded-lg bg-[#111821] hover:bg-[#1E293B] border border-[#1E293B] text-[#94A3B8] hover:text-white transition-all"
+            title="Refresh List"
           >
             <RefreshCw className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      {/* Enterprise Software Product Table */}
-      <div className="bg-[#0D121A] rounded-lg border border-[#202A36] overflow-hidden shadow-sm">
+      {/* Products Table Card */}
+      <div className="bg-[#0D121A] rounded-xl border border-[#1E293B] overflow-hidden shadow-lg">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-[#111821] text-[#8B97A7] uppercase tracking-wider text-[10px] font-mono font-bold border-b border-[#202A36]">
+            <thead className="bg-[#111821] text-[#94A3B8] uppercase tracking-wider text-[10px] font-mono font-bold border-b border-[#1E293B]">
               <tr>
-                <th className="px-4 py-2.5">Product</th>
-                <th className="px-4 py-2.5">Product ID</th>
-                <th className="px-4 py-2.5">Status</th>
-                <th className="px-4 py-2.5">Blockchain</th>
-                <th className="px-4 py-2.5">Last verified</th>
-                <th className="px-4 py-2.5 text-right">Actions</th>
+                <th className="px-4 py-3">Product Specs</th>
+                <th className="px-4 py-3">Product ID</th>
+                <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3">Blockchain Tx</th>
+                <th className="px-4 py-3">Created Date</th>
+                <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#202A36]">
+            <tbody className="divide-y divide-[#1E293B]">
               {loading ? (
                 <tr>
-                  <td colSpan="6" className="px-4 py-8 text-center text-[#8B97A7] font-mono">
+                  <td colSpan="6" className="px-4 py-8 text-center text-[#94A3B8] font-mono">
                     Loading product catalog...
                   </td>
                 </tr>
               ) : products.length > 0 ? (
                 products.map((p) => (
-                  <tr key={p._id} className="hover:bg-[#111821] transition-colors">
-                    <td className="px-4 py-2.5">
+                  <tr key={p._id} className="hover:bg-[#111821]/60 transition-colors">
+                    <td className="px-4 py-3">
                       <div className="flex items-center space-x-3">
                         <img
                           src={p.productImage || "https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=200&auto=format&fit=crop&q=80"}
                           alt={p.productName}
-                          className="w-8 h-8 rounded object-cover border border-[#202A36]"
+                          className="w-9 h-9 rounded-lg object-cover border border-[#1E293B]"
                         />
                         <div>
                           <div className="font-bold text-white text-xs">{p.productName}</div>
-                          <div className="text-[10px] text-[#8B97A7] font-mono">{p.brandName} • SN: {p.serialNumber}</div>
+                          <div className="text-[10px] text-[#94A3B8] font-mono">{p.brandName} • SN: {p.serialNumber}</div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-2.5 font-mono font-bold text-cyan-400">{p.productId}</td>
-                    <td className="px-4 py-2.5">
+                    <td className="px-4 py-3 font-mono font-bold text-cyan-400">{p.productId}</td>
+                    <td className="px-4 py-3">
                       <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
+                        className={`px-2.5 py-0.5 rounded text-[10px] font-mono font-bold ${
                           p.status === "AUTHENTIC" || p.status === "ACTIVE"
                             ? "bg-emerald-950/60 text-emerald-400 border border-emerald-500/30"
                             : "bg-red-950/60 text-red-400 border border-red-500/30"
@@ -209,32 +216,26 @@ export default function ProductsPage() {
                         {p.status === "AUTHENTIC" || p.status === "ACTIVE" ? "✓ Verified" : "Recalled"}
                       </span>
                     </td>
-                    <td className="px-4 py-2.5 font-mono text-[10px] text-blue-400">
-                      {p.transactionHash ? `${p.transactionHash.substring(0, 10)}...` : "On-chain"}
+                    <td className="px-4 py-3 font-mono text-[11px] text-blue-400">
+                      {p.transactionHash ? `${p.transactionHash.substring(0, 10)}...` : "On-Chain"}
                     </td>
-                    <td className="px-4 py-2.5 font-mono text-[11px] text-[#8B97A7]">
-                      {new Date(p.updatedAt || p.createdAt).toLocaleDateString()}
+                    <td className="px-4 py-3 font-mono text-[11px] text-[#94A3B8]">
+                      {new Date(p.createdAt).toLocaleDateString()}
                     </td>
-                    <td className="px-4 py-2.5 text-right">
+                    <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end space-x-2">
                         <Link
-                          to={`/products/${p.productId}`}
-                          className="px-2.5 py-1 rounded bg-[#111821] hover:bg-[#202A36] text-slate-200 border border-[#202A36] font-medium text-[11px]"
-                        >
-                          View
-                        </Link>
-                        <Link
                           to={`/verify/${p.productId}`}
-                          className="px-2.5 py-1 rounded bg-cyan-950/40 text-cyan-400 border border-cyan-500/30 font-medium text-[11px]"
+                          className="px-3 py-1 rounded-md bg-cyan-950/60 text-cyan-400 border border-cyan-500/30 font-medium text-xs hover:bg-cyan-900/60 transition-colors"
                         >
                           Verify
                         </Link>
                         <Link
                           to={`/products/${p.productId}/qr`}
-                          className="p-1 rounded bg-[#111821] text-[#8B97A7] border border-[#202A36] hover:text-white"
-                          title="QR label"
+                          className="p-1.5 rounded-md bg-[#111821] text-[#94A3B8] border border-[#1E293B] hover:text-white transition-colors"
+                          title="QR Code Label"
                         >
-                          <QrCode className="w-3.5 h-3.5" />
+                          <QrCode className="w-4 h-4" />
                         </Link>
                       </div>
                     </td>
@@ -242,7 +243,7 @@ export default function ProductsPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="6" className="px-4 py-8 text-center text-[#8B97A7] font-mono">
+                  <td colSpan="6" className="px-4 py-8 text-center text-[#94A3B8] font-mono">
                     No products match query criteria.
                   </td>
                 </tr>
@@ -253,20 +254,20 @@ export default function ProductsPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="p-3 bg-[#111821] border-t border-[#202A36] flex items-center justify-between text-xs text-[#8B97A7] font-mono">
+          <div className="p-4 bg-[#111821] border-t border-[#1E293B] flex items-center justify-between text-xs text-[#94A3B8] font-mono">
             <span>Page {page} of {totalPages}</span>
             <div className="flex items-center space-x-2">
               <button
                 disabled={page <= 1}
                 onClick={() => setPage(page - 1)}
-                className="px-3 py-1 rounded bg-[#0D121A] disabled:opacity-40 border border-[#202A36] text-slate-300"
+                className="px-3 py-1.5 rounded-md bg-[#0D121A] disabled:opacity-40 border border-[#1E293B] text-slate-300 hover:border-slate-600"
               >
                 Previous
               </button>
               <button
                 disabled={page >= totalPages}
                 onClick={() => setPage(page + 1)}
-                className="px-3 py-1 rounded bg-[#0D121A] disabled:opacity-40 border border-[#202A36] text-slate-300"
+                className="px-3 py-1.5 rounded-md bg-[#0D121A] disabled:opacity-40 border border-[#1E293B] text-slate-300 hover:border-slate-600"
               >
                 Next
               </button>
@@ -274,51 +275,6 @@ export default function ProductsPage() {
           </div>
         )}
       </div>
-
-      {/* Transfer Ownership Modal */}
-      {transferModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-[#0D121A] w-full max-w-md p-6 rounded-lg border border-[#202A36] space-y-4 text-xs">
-            <h3 className="text-sm font-bold text-white flex items-center space-x-2">
-              <ArrowRightLeft className="w-4 h-4 text-cyan-400" />
-              <span>Transfer ownership on-chain</span>
-            </h3>
-            <p className="text-[#8B97A7]">
-              Transfer product <strong className="text-cyan-400 font-mono">{transferModal.productId}</strong> to a new wallet address.
-            </p>
-
-            <form onSubmit={handleTransferSubmit} className="space-y-4">
-              <div>
-                <label className="font-mono font-medium text-slate-300 text-[11px] block mb-1">New owner wallet address *</label>
-                <input
-                  type="text"
-                  value={newWallet}
-                  onChange={(e) => setNewWallet(e.target.value)}
-                  placeholder="0x..."
-                  required
-                  className="w-full px-3 py-2 rounded bg-[#111821] border border-[#202A36] text-white font-mono text-xs focus:outline-none focus:border-cyan-500"
-                />
-              </div>
-
-              <div className="flex items-center justify-end space-x-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setTransferModal(null)}
-                  className="px-3 py-1.5 rounded bg-[#111821] text-slate-300 font-medium border border-[#202A36]"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-1.5 rounded bg-[#06b6d4] text-[#070A0F] font-bold"
-                >
-                  Confirm transfer
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

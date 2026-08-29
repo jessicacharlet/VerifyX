@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { QrCode, Search, Hash, Camera, ShieldCheck, ArrowRight } from "lucide-react";
+import { QrCode, Search, Hash, Camera, ShieldCheck, ArrowRight, UploadCloud, CheckCircle, AlertTriangle } from "lucide-react";
 import QRScannerModal from "../components/QRScannerModal";
 
 export default function VerifyPage() {
   const [activeMethod, setActiveMethod] = useState("qr"); // 'qr' | 'id' | 'serial'
   const [inputVal, setInputVal] = useState("");
   const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const navigate = useNavigate();
 
   const handleSearchSubmit = (e) => {
@@ -27,36 +28,55 @@ export default function VerifyPage() {
     navigate(`/verify/${sampleId}`);
   };
 
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    setIsScannerOpen(true);
+  };
+
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10 space-y-6 bg-[#070A0F]">
+    <div className="max-w-3xl mx-auto px-4 py-10 space-y-8 bg-[#070A0F]">
       {/* Header */}
-      <div className="text-center space-y-1">
-        <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">Verify product</h1>
-        <p className="text-xs text-[#8B97A7]">
-          Check a product against its registered authenticity record.
+      <div className="text-center space-y-2">
+        <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#0D121A] border border-cyan-500/30 text-cyan-400 text-xs font-mono font-medium">
+          <ShieldCheck className="w-3.5 h-3.5" />
+          <span>Product Authentication Engine</span>
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">Verify Asset Authenticity</h1>
+        <p className="text-xs sm:text-sm text-[#94A3B8] max-w-md mx-auto">
+          Scan product QR code, enter Product ID, or upload label image to query on-chain records and AI forgery checks.
         </p>
       </div>
 
       {/* Verification Method Segmented Control */}
-      <div className="grid grid-cols-3 gap-1.5 p-1 bg-[#0D121A] rounded-md border border-[#202A36]">
+      <div className="grid grid-cols-3 gap-1.5 p-1 bg-[#0D121A] rounded-lg border border-[#1E293B]">
         <button
           onClick={() => setActiveMethod("qr")}
-          className={`py-2 px-3 rounded text-xs font-mono font-medium flex items-center justify-center space-x-2 transition-colors ${
+          className={`py-2.5 px-3 rounded-md text-xs font-mono font-medium flex items-center justify-center space-x-2 transition-all ${
             activeMethod === "qr"
-              ? "bg-[#06b6d4] text-[#070A0F] font-bold"
-              : "text-[#8B97A7] hover:text-slate-200"
+              ? "bg-cyan-400 text-[#070A0F] font-bold shadow-sm shadow-cyan-500/20"
+              : "text-[#94A3B8] hover:text-slate-200 hover:bg-[#111821]"
           }`}
         >
           <Camera className="w-3.5 h-3.5" />
-          <span>QR code</span>
+          <span>Scan QR Code</span>
         </button>
 
         <button
           onClick={() => setActiveMethod("id")}
-          className={`py-2 px-3 rounded text-xs font-mono font-medium flex items-center justify-center space-x-2 transition-colors ${
+          className={`py-2.5 px-3 rounded-md text-xs font-mono font-medium flex items-center justify-center space-x-2 transition-all ${
             activeMethod === "id"
-              ? "bg-[#06b6d4] text-[#070A0F] font-bold"
-              : "text-[#8B97A7] hover:text-slate-200"
+              ? "bg-cyan-400 text-[#070A0F] font-bold shadow-sm shadow-cyan-500/20"
+              : "text-[#94A3B8] hover:text-slate-200 hover:bg-[#111821]"
           }`}
         >
           <Hash className="w-3.5 h-3.5" />
@@ -65,45 +85,59 @@ export default function VerifyPage() {
 
         <button
           onClick={() => setActiveMethod("serial")}
-          className={`py-2 px-3 rounded text-xs font-mono font-medium flex items-center justify-center space-x-2 transition-colors ${
+          className={`py-2.5 px-3 rounded-md text-xs font-mono font-medium flex items-center justify-center space-x-2 transition-all ${
             activeMethod === "serial"
-              ? "bg-[#06b6d4] text-[#070A0F] font-bold"
-              : "text-[#8B97A7] hover:text-slate-200"
+              ? "bg-cyan-400 text-[#070A0F] font-bold shadow-sm shadow-cyan-500/20"
+              : "text-[#94A3B8] hover:text-slate-200 hover:bg-[#111821]"
           }`}
         >
           <Search className="w-3.5 h-3.5" />
-          <span>Serial number</span>
+          <span>Serial Number</span>
         </button>
       </div>
 
-      {/* Verification Action Box */}
-      <div className="bg-[#0D121A] p-6 rounded-lg border border-[#202A36] space-y-6">
+      {/* Polished Upload / Action Card */}
+      <div className="bg-[#0D121A] p-6 sm:p-8 rounded-xl border border-[#1E293B] shadow-xl space-y-6">
         {activeMethod === "qr" && (
-          <div className="text-center space-y-4 py-2">
-            <div className="w-12 h-12 rounded-lg bg-[#111821] text-cyan-400 flex items-center justify-center mx-auto border border-[#202A36]">
-              <QrCode className="w-6 h-6" />
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`border-2 border-dashed rounded-xl p-8 text-center space-y-5 transition-all ${
+              isDragging
+                ? "border-cyan-400 bg-cyan-500/10"
+                : "border-[#1E293B] hover:border-cyan-500/40 bg-[#111821]/50"
+            }`}
+          >
+            <div className="w-14 h-14 rounded-xl bg-[#111821] text-cyan-400 border border-[#1E293B] flex items-center justify-center mx-auto shadow-inner">
+              <UploadCloud className="w-7 h-7" />
             </div>
-            <div className="space-y-1">
-              <h3 className="text-sm font-bold text-white">Scan product QR code</h3>
-              <p className="text-xs text-[#8B97A7] max-w-sm mx-auto">
-                Scan the QR code on the product packaging using your camera or upload a QR image.
+
+            <div className="space-y-1.5">
+              <h3 className="text-base font-bold text-white">Upload Asset Label or Scan QR</h3>
+              <p className="text-xs text-[#94A3B8] max-w-sm mx-auto">
+                Drag and drop your product label image here, or launch live camera scanner.
               </p>
+              <div className="text-[10px] font-mono text-[#64748B] pt-1">
+                Supported: PNG, JPG, JPEG, WEBP, QR Code Images
+              </div>
             </div>
+
             <button
               onClick={() => setIsScannerOpen(true)}
-              className="px-6 py-2.5 rounded-md font-bold text-xs text-[#070A0F] bg-[#06b6d4] hover:bg-[#0891b2] inline-flex items-center space-x-2 transition-colors border border-cyan-400/30"
+              className="px-6 py-3 rounded-lg font-bold text-xs text-[#070A0F] bg-cyan-400 hover:bg-cyan-300 inline-flex items-center space-x-2 transition-all border border-cyan-300/40 shadow-sm shadow-cyan-500/20"
             >
               <Camera className="w-4 h-4" />
-              <span>Launch camera / Upload QR</span>
+              <span>Launch Camera / Upload Image</span>
             </button>
           </div>
         )}
 
         {activeMethod === "id" && (
-          <form onSubmit={handleSearchSubmit} className="space-y-4 py-2 text-xs">
-            <div className="space-y-1.5">
-              <label className="font-mono font-medium text-slate-300 text-[11px] block">
-                Product ID
+          <form onSubmit={handleSearchSubmit} className="space-y-5 py-2">
+            <div className="space-y-2">
+              <label className="font-mono font-medium text-slate-300 text-xs block">
+                Product ID Lookup
               </label>
               <div className="relative">
                 <input
@@ -111,26 +145,27 @@ export default function VerifyPage() {
                   value={inputVal}
                   onChange={(e) => setInputVal(e.target.value)}
                   placeholder="e.g. PROD-AP-9901"
-                  className="w-full px-3.5 py-2.5 pl-9 rounded-md bg-[#111821] border border-[#202A36] text-white placeholder-[#8B97A7] focus:outline-none focus:border-cyan-500 font-mono text-xs uppercase"
+                  className="w-full px-4 py-3 pl-10 rounded-lg bg-[#111821] border border-[#1E293B] text-white placeholder-[#64748B] focus:outline-none focus:border-cyan-400 font-mono text-xs uppercase"
                 />
-                <Hash className="w-4 h-4 text-[#8B97A7] absolute left-3 top-3" />
+                <Hash className="w-4 h-4 text-[#94A3B8] absolute left-3.5 top-3.5" />
               </div>
             </div>
+
             <button
               type="submit"
-              className="w-full py-2.5 rounded-md font-bold text-[#070A0F] bg-[#06b6d4] hover:bg-[#0891b2] flex items-center justify-center space-x-2 transition-colors text-xs border border-cyan-400/30"
+              className="w-full py-3 rounded-lg font-bold text-[#070A0F] bg-cyan-400 hover:bg-cyan-300 flex items-center justify-center space-x-2 transition-all text-xs border border-cyan-300/40 shadow-sm shadow-cyan-500/20"
             >
               <Search className="w-4 h-4" />
-              <span>Verify product</span>
+              <span>Verify Product ID</span>
             </button>
           </form>
         )}
 
         {activeMethod === "serial" && (
-          <form onSubmit={handleSearchSubmit} className="space-y-4 py-2 text-xs">
-            <div className="space-y-1.5">
-              <label className="font-mono font-medium text-slate-300 text-[11px] block">
-                Serial number
+          <form onSubmit={handleSearchSubmit} className="space-y-5 py-2">
+            <div className="space-y-2">
+              <label className="font-mono font-medium text-slate-300 text-xs block">
+                Serial Number Lookup
               </label>
               <div className="relative">
                 <input
@@ -138,48 +173,61 @@ export default function VerifyPage() {
                   value={inputVal}
                   onChange={(e) => setInputVal(e.target.value)}
                   placeholder="e.g. SN-AP-98213890"
-                  className="w-full px-3.5 py-2.5 pl-9 rounded-md bg-[#111821] border border-[#202A36] text-white placeholder-[#8B97A7] focus:outline-none focus:border-cyan-500 font-mono text-xs uppercase"
+                  className="w-full px-4 py-3 pl-10 rounded-lg bg-[#111821] border border-[#1E293B] text-white placeholder-[#64748B] focus:outline-none focus:border-cyan-400 font-mono text-xs uppercase"
                 />
-                <Search className="w-4 h-4 text-[#8B97A7] absolute left-3 top-3" />
+                <Search className="w-4 h-4 text-[#94A3B8] absolute left-3.5 top-3.5" />
               </div>
             </div>
+
             <button
               type="submit"
-              className="w-full py-2.5 rounded-md font-bold text-[#070A0F] bg-[#06b6d4] hover:bg-[#0891b2] flex items-center justify-center space-x-2 transition-colors text-xs border border-cyan-400/30"
+              className="w-full py-3 rounded-lg font-bold text-[#070A0F] bg-cyan-400 hover:bg-cyan-300 flex items-center justify-center space-x-2 transition-all text-xs border border-cyan-300/40 shadow-sm shadow-cyan-500/20"
             >
               <Search className="w-4 h-4" />
-              <span>Verify product</span>
+              <span>Verify Serial Number</span>
             </button>
           </form>
         )}
       </div>
 
-      {/* Demo Shortcuts */}
-      <div className="bg-[#0D121A] p-4 rounded-lg border border-[#202A36] space-y-2 text-xs font-mono">
-        <div className="text-slate-300 font-semibold text-[11px]">Demo shortcuts:</div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+      {/* Interactive Sample Shortcuts */}
+      <div className="bg-[#0D121A] p-5 rounded-xl border border-[#1E293B] space-y-3 font-mono text-xs">
+        <div className="text-slate-300 font-semibold text-xs flex items-center justify-between">
+          <span>Preset Verification Samples:</span>
+          <span className="text-[10px] text-[#64748B]">Instant One-Click Test</span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <button
             onClick={() => handleDemoClick("PROD-AP-9901")}
-            className="p-2.5 rounded bg-[#111821] hover:bg-[#202A36] border border-[#202A36] text-left transition-colors"
+            className="p-3 rounded-lg bg-[#111821] hover:bg-[#1E293B] border border-[#1E293B] text-left transition-all group"
           >
-            <div className="font-bold text-emerald-400 text-[11px]">AirPods Pro (2nd Gen)</div>
-            <div className="text-[10px] text-[#8B97A7]">PROD-AP-9901 (Authentic)</div>
+            <div className="font-bold text-emerald-400 text-xs flex items-center justify-between">
+              <span>AirPods Pro (2nd Gen)</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
+            <div className="text-[10px] text-[#94A3B8] mt-0.5">PROD-AP-9901 (Authentic)</div>
           </button>
 
           <button
             onClick={() => handleDemoClick("PROD-SG-8820")}
-            className="p-2.5 rounded bg-[#111821] hover:bg-[#202A36] border border-[#202A36] text-left transition-colors"
+            className="p-3 rounded-lg bg-[#111821] hover:bg-[#1E293B] border border-[#1E293B] text-left transition-all group"
           >
-            <div className="font-bold text-emerald-400 text-[11px]">Galaxy S25 Ultra</div>
-            <div className="text-[10px] text-[#8B97A7]">PROD-SG-8820 (Authentic)</div>
+            <div className="font-bold text-emerald-400 text-xs flex items-center justify-between">
+              <span>Galaxy S25 Ultra</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
+            <div className="text-[10px] text-[#94A3B8] mt-0.5">PROD-SG-8820 (Authentic)</div>
           </button>
 
           <button
             onClick={() => handleDemoClick("PROD-FAKE-0000")}
-            className="p-2.5 rounded bg-[#111821] hover:bg-[#202A36] border border-[#202A36] text-left transition-colors"
+            className="p-3 rounded-lg bg-[#111821] hover:bg-[#1E293B] border border-[#1E293B] text-left transition-all group"
           >
-            <div className="font-bold text-red-400 text-[11px]">Unregistered sample</div>
-            <div className="text-[10px] text-[#8B97A7]">PROD-FAKE-0000 (Counterfeit)</div>
+            <div className="font-bold text-red-400 text-xs flex items-center justify-between">
+              <span>Unregistered Sample</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
+            <div className="text-[10px] text-[#94A3B8] mt-0.5">PROD-FAKE-0000 (Counterfeit)</div>
           </button>
         </div>
       </div>
