@@ -34,9 +34,17 @@ const verifyProduct = async (req, res) => {
 
     queryId = queryId.replace(/\/+$/, "").trim().toUpperCase();
 
-    // Verify DB Connection State
+    // Ensure DB Connection State before executing query
     if (mongoose.connection.readyState !== 1) {
-      console.warn("⚠️ Database connection offline in verifyController");
+      const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/verimark";
+      try {
+        await mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 5000, bufferCommands: false });
+      } catch (connErr) {
+        console.warn("⚠️ DB connection attempt in verifyController failed:", connErr.message);
+      }
+    }
+
+    if (mongoose.connection.readyState !== 1) {
       return res.status(503).json({
         success: false,
         message: "Database service unavailable. Please check MONGO_URI configuration.",
