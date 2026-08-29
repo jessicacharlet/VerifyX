@@ -12,16 +12,19 @@ const blockchainRoutes = require("../server/routes/blockchainRoutes");
 
 const app = express();
 
-// Enable CORS for Vercel Serverless Functions
+// Enable CORS for Vercel Serverless Functions (allow origin dynamically)
 app.use(
   cors({
-    origin: "*",
+    origin: true,
     credentials: true,
   })
 );
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+// Disable Mongoose query buffering on serverless environments
+mongoose.set("bufferCommands", false);
 
 // Static uploads folder
 const uploadsPath = path.join(__dirname, "../uploads");
@@ -40,18 +43,18 @@ async function connectToDatabase() {
   try {
     const db = await mongoose.connect(MONGO_URI, {
       serverSelectionTimeoutMS: 5000,
+      bufferCommands: false,
     });
     cachedDb = db;
     console.log("✅ Serverless MongoDB connected successfully");
     return cachedDb;
   } catch (err) {
     console.error("⚠️ Serverless MongoDB connection error:", err.message);
-    // Proceed without throwing so offline/mock fallback handlers can operate
     return null;
   }
 }
 
-// Middleware to ensure DB connection per serverless invocation
+// Middleware to ensure DB connection attempt per serverless invocation
 app.use(async (req, res, next) => {
   await connectToDatabase();
   next();

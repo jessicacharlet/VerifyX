@@ -29,10 +29,14 @@ export default function LandingPage() {
   };
 
   const handleQRScanned = (scannedCode) => {
+    console.log("QR scanned text received in landing page:", scannedCode);
     let cleanCode = scannedCode.trim();
+    try { cleanCode = decodeURIComponent(cleanCode); } catch (e) {}
     if (cleanCode.includes("/verify/")) {
       cleanCode = cleanCode.split("/verify/")[1].split("?")[0];
     }
+    cleanCode = cleanCode.replace(/\/+$/, "").trim();
+    console.log("Parsed product ID for verification route:", cleanCode);
     navigate(`/verify/${encodeURIComponent(cleanCode)}`);
   };
 

@@ -57,8 +57,21 @@ export default function VerificationResultPage() {
           }
         }
       } catch (err) {
-        console.error("Verification endpoint error:", err);
-        setError("Failed to communicate with verification servers.");
+        console.error("Verification endpoint request failed:", {
+          status: err.response?.status,
+          statusText: err.response?.statusText,
+          message: err.response?.data?.message || err.message,
+          data: err.response?.data,
+        });
+
+        const backendMsg = err.response?.data?.message || err.response?.data?.error;
+        if (backendMsg) {
+          setError(backendMsg);
+        } else if (err.code === "ERR_NETWORK" || !err.response) {
+          setError("Verification service is unreachable. Please check network connectivity.");
+        } else {
+          setError(`Server error (${err.response?.status || 500}): Verification could not be completed.`);
+        }
       } finally {
         setLoading(false);
       }

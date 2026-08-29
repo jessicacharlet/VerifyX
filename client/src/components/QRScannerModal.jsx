@@ -52,13 +52,15 @@ export default function QRScannerModal({ isOpen, onClose, onScanSuccess }) {
 
     try {
       setScannerError("");
+      console.log("Reading uploaded image file for QR code:", file.name, file.type, file.size);
       const html5Qrcode = new Html5Qrcode("file-reader");
       const decodedText = await html5Qrcode.scanFile(file, true);
+      console.log("QR decoded successfully:", decodedText);
       onScanSuccess(decodedText);
       onClose();
     } catch (err) {
       console.error("File QR scan error:", err);
-      setScannerError("Could not detect a valid product QR code in the uploaded image.");
+      setScannerError("Could not detect a valid product QR code in the uploaded image. Please ensure the image contains a clear, unblurried QR code label.");
     }
   };
 

@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Product = require("../models/Product");
 const Verification = require("../models/Verification");
 const { generateProductHash } = require("../utils/hashGenerator");
@@ -12,21 +13,42 @@ const path = require("path");
 const verifyProduct = async (req, res) => {
   try {
     const { code, productId, serialNumber } = req.body;
-    let queryId = productId || code || serialNumber;
+    let rawInput = productId || code || serialNumber;
 
-    if (!queryId) {
-      return res.status(400).json({ success: false, message: "Please provide a Product ID, Serial Number, or QR Code" });
+    if (!rawInput) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide a Product ID, Serial Number, or QR Code data.",
+      });
     }
 
-    // Clean up input (support full verification URL or raw ID)
-    queryId = queryId.trim();
+    // Clean and normalize input (support full verification URL or raw ID)
+    let queryId = String(rawInput).trim();
+    try {
+      queryId = decodeURIComponent(queryId);
+    } catch (e) {}
+
     if (queryId.includes("/verify/")) {
       queryId = queryId.split("/verify/")[1].split("?")[0];
     }
-    queryId = queryId.toUpperCase();
 
-    // Generate random verification ID
-    const verificationId = "VERIF-" + Date.now().toString(36).toUpperCase() + "-" + crypto.randomBytes(3).toString("hex").toUpperCase();
+    queryId = queryId.replace(/\/+$/, "").trim().toUpperCase();
+
+    // Verify DB Connection State
+    if (mongoose.connection.readyState !== 1) {
+      console.warn("⚠️ Database connection offline in verifyController");
+      return res.status(503).json({
+        success: false,
+        message: "Database service unavailable. Please check MONGO_URI configuration.",
+      });
+    }
+
+    // Generate unique audit verification ID
+    const verificationId =
+      "VERIF-" +
+      Date.now().toString(36).toUpperCase() +
+      "-" +
+      crypto.randomBytes(3).toString("hex").toUpperCase();
 
     // 1. Search in MongoDB by productId or serialNumber
     const product = await Product.findOne({
@@ -38,32 +60,35 @@ const verifyProduct = async (req, res) => {
     let registeredImagePath = null;
 
     if (product && product.productImage) {
-      // Resolve registered image path if saved locally under /uploads
       if (product.productImage.startsWith("/uploads/")) {
         registeredImagePath = path.join(__dirname, "..", product.productImage);
       }
     }
 
-    // Case A: Product NOT found
+    // Case A: Product NOT found in database
     if (!product) {
       const aiData = await analyzeProductImage(submittedImagePath, registeredImagePath);
 
-      await Verification.create({
-        verificationId,
-        productId: queryId,
-        scannedCode: req.body.code || queryId,
-        verificationStatus: "FAILED_NOT_FOUND",
-        location: req.body.location || "Global Verification Portal",
-        userAgent: req.headers["user-agent"] || "",
-        ...aiData,
-      });
+      try {
+        await Verification.create({
+          verificationId,
+          productId: queryId,
+          scannedCode: req.body.code || queryId,
+          verificationStatus: "FAILED_NOT_FOUND",
+          location: req.body.location || "Global Verification Portal",
+          userAgent: req.headers["user-agent"] || "",
+          ...aiData,
+        });
+      } catch (logErr) {
+        console.warn("Verification log creation skipped:", logErr.message);
+      }
 
       return res.status(200).json({
         success: false,
         isAuthentic: false,
         status: "NOT_AUTHENTIC",
         reason: "PRODUCT_NOT_FOUND",
-        message: "No product registration record matches the provided Product ID or Serial Number.",
+        message: `No product registration record matches the query '${queryId}'.`,
         verificationId,
         searchedQuery: queryId,
         ai: aiData,
@@ -76,15 +101,19 @@ const verifyProduct = async (req, res) => {
 
     // Case B: Product found but status is RECALLED / SUSPENDED / COUNTERFEIT
     if (product.status === "RECALLED" || product.status === "SUSPENDED" || product.status === "COUNTERFEIT") {
-      await Verification.create({
-        verificationId,
-        productId: product.productId,
-        scannedCode: req.body.code || queryId,
-        verificationStatus: "FAILED_INACTIVE",
-        location: req.body.location || "Global Verification Portal",
-        userAgent: req.headers["user-agent"] || "",
-        ...aiData,
-      });
+      try {
+        await Verification.create({
+          verificationId,
+          productId: product.productId,
+          scannedCode: req.body.code || queryId,
+          verificationStatus: "FAILED_INACTIVE",
+          location: req.body.location || "Global Verification Portal",
+          userAgent: req.headers["user-agent"] || "",
+          ...aiData,
+        });
+      } catch (logErr) {
+        console.warn("Verification log creation skipped:", logErr.message);
+      }
 
       return res.status(200).json({
         success: false,
@@ -111,15 +140,19 @@ const verifyProduct = async (req, res) => {
     const isHashValid = recomputedHash === product.productHash;
 
     if (!isHashValid) {
-      await Verification.create({
-        verificationId,
-        productId: product.productId,
-        scannedCode: req.body.code || queryId,
-        verificationStatus: "FAILED_HASH_MISMATCH",
-        location: req.body.location || "Global Verification Portal",
-        userAgent: req.headers["user-agent"] || "",
-        ...aiData,
-      });
+      try {
+        await Verification.create({
+          verificationId,
+          productId: product.productId,
+          scannedCode: req.body.code || queryId,
+          verificationStatus: "FAILED_HASH_MISMATCH",
+          location: req.body.location || "Global Verification Portal",
+          userAgent: req.headers["user-agent"] || "",
+          ...aiData,
+        });
+      } catch (logErr) {
+        console.warn("Verification log creation skipped:", logErr.message);
+      }
 
       return res.status(200).json({
         success: false,
@@ -138,19 +171,28 @@ const verifyProduct = async (req, res) => {
     const blockchainRecord = await verifyOnBlockchain(product.productId);
 
     // 4. Save successful verification log with AI analysis results
-    await Verification.create({
-      verificationId,
-      productId: product.productId,
-      scannedCode: req.body.code || queryId,
-      verificationStatus: "SUCCESS",
-      location: req.body.location || "Global Verification Portal",
-      userAgent: req.headers["user-agent"] || "",
-      blockchainTransactionHash: product.transactionHash || "",
-      ...aiData,
-    });
+    try {
+      await Verification.create({
+        verificationId,
+        productId: product.productId,
+        scannedCode: req.body.code || queryId,
+        verificationStatus: "SUCCESS",
+        location: req.body.location || "Global Verification Portal",
+        userAgent: req.headers["user-agent"] || "",
+        blockchainTransactionHash: product.transactionHash || "",
+        ...aiData,
+      });
+    } catch (logErr) {
+      console.warn("Verification log creation skipped:", logErr.message);
+    }
 
     // 5. Calculate total verification count
-    const totalVerifications = await Verification.countDocuments({ productId: product.productId });
+    let totalVerifications = 1;
+    try {
+      totalVerifications = await Verification.countDocuments({ productId: product.productId });
+    } catch (countErr) {
+      totalVerifications = 1;
+    }
 
     return res.status(200).json({
       success: true,
@@ -188,6 +230,14 @@ const verifyProduct = async (req, res) => {
 const getProductVerificationHistory = async (req, res) => {
   try {
     const { productId } = req.params;
+
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(200).json({
+        success: true,
+        count: 0,
+        verifications: [],
+      });
+    }
 
     const verifications = await Verification.find({ productId: productId.toUpperCase() })
       .sort({ createdAt: -1 })
