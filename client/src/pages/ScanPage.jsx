@@ -20,14 +20,14 @@ import API from "../services/api";
 import QRScannerModal from "../components/QRScannerModal";
 
 const STAGE_NEXT_MAP = {
-  ORDER_RECEIVED: { next: "PRODUCT_ASSIGNED", label: "Assign Product", actionText: "Assign Product to Order" },
-  PRODUCT_ASSIGNED: { next: "QR_GENERATED", label: "Generate QR", actionText: "Generate & Print QR Code" },
-  QR_GENERATED: { next: "PACKED", label: "Pack Product", actionText: "Confirm Packaging & Seal" },
-  PACKED: { next: "QUALITY_CHECK", label: "Quality Check", actionText: "Perform Quality Check" },
-  QUALITY_CHECK: { next: "DISPATCHED", label: "Dispatch Product", actionText: "Dispatch to Logistics Courier" },
-  DISPATCHED: { next: "IN_TRANSIT", label: "In Transit Scan", actionText: "Record Transit Checkpoint" },
-  IN_TRANSIT: { next: "DELIVERED", label: "Confirm Delivery", actionText: "Confirm Final Delivery to Customer" },
-  DELIVERED: { next: "DELIVERED", label: "Delivered", actionText: "Product Already Delivered" },
+  ORDER_RECEIVED: { next: "PRODUCT_ASSIGNED", label: "Assign product", actionText: "Assign product to order" },
+  PRODUCT_ASSIGNED: { next: "QR_GENERATED", label: "Generate QR", actionText: "Generate & print QR code" },
+  QR_GENERATED: { next: "PACKED", label: "Pack product", actionText: "Confirm packaging & seal" },
+  PACKED: { next: "QUALITY_CHECK", label: "Quality check", actionText: "Perform quality check" },
+  QUALITY_CHECK: { next: "DISPATCHED", label: "Dispatch product", actionText: "Dispatch to logistics courier" },
+  DISPATCHED: { next: "IN_TRANSIT", label: "In transit scan", actionText: "Record transit checkpoint" },
+  IN_TRANSIT: { next: "DELIVERED", label: "Confirm delivery", actionText: "Confirm final delivery to customer" },
+  DELIVERED: { next: "DELIVERED", label: "Delivered", actionText: "Product already delivered" },
 };
 
 export default function ScanPage() {
@@ -42,7 +42,6 @@ export default function ScanPage() {
 
   const [scannedProduct, setScannedProduct] = useState(null);
 
-  // Form State for Scan Action Confirmation
   const [location, setLocation] = useState("Chennai Central Warehouse");
   const [condition, setCondition] = useState("GOOD");
   const [sealCondition, setSealCondition] = useState("INTACT");
@@ -124,7 +123,7 @@ export default function ScanPage() {
 
       const res = await API.post("/scans", payload);
       if (res.data && res.data.success) {
-        setSuccessMsg(`✓ Scan Event successfully recorded! Stage updated to '${targetStage}'.`);
+        setSuccessMsg(`✓ Scan event recorded successfully! Stage updated to '${targetStage}'.`);
         setScannedProduct(res.data.product);
         setRemarks("");
         setDamageDescription("");
@@ -138,19 +137,19 @@ export default function ScanPage() {
   };
 
   const nextStageInfo = scannedProduct
-    ? STAGE_NEXT_MAP[scannedProduct.currentStage] || { next: "IN_TRANSIT", actionText: "Update Transit Checkpoint" }
+    ? STAGE_NEXT_MAP[scannedProduct.currentStage] || { next: "IN_TRANSIT", actionText: "Update transit checkpoint" }
     : null;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+    <div className="max-w-4xl mx-auto px-4 py-8 space-y-6 font-sans">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#0D121A] p-6 rounded-xl border border-[#1E293B] shadow-lg">
         <div className="space-y-1">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-400 text-xs font-mono font-medium">
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-400 text-xs font-medium">
             <QrCode className="w-3.5 h-3.5" />
-            <span>EMPLOYEE MOBILE SCANNER</span>
+            <span>Mobile Employee Scanner</span>
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Product Lifecycle Scanner</h1>
+          <h1 className="text-2xl font-semibold text-white tracking-tight">Product Lifecycle Scanner</h1>
           <p className="text-xs text-[#94A3B8]">
             Scan product QR code or enter Product ID to log stage transitions and condition checks.
           </p>
@@ -159,7 +158,7 @@ export default function ScanPage() {
         <button
           type="button"
           onClick={() => setIsScannerOpen(true)}
-          className="px-5 py-3 rounded-lg bg-cyan-400 hover:bg-cyan-300 text-[#070A0F] font-bold text-xs flex items-center justify-center space-x-2 transition-all shadow-md shadow-cyan-500/20"
+          className="px-5 py-3 rounded-lg bg-cyan-400 hover:bg-cyan-300 text-[#070A0F] font-semibold text-xs flex items-center justify-center space-x-2 transition-all shadow-md shadow-cyan-500/20"
         >
           <Camera className="w-4 h-4" />
           <span>Open Camera Scanner</span>
@@ -174,7 +173,7 @@ export default function ScanPage() {
         }}
         className="bg-[#0D121A] p-5 rounded-xl border border-[#1E293B] space-y-3"
       >
-        <label className="text-xs font-mono text-slate-300 font-medium block">
+        <label className="text-xs text-slate-300 font-medium block">
           Enter Product ID or Serial Number:
         </label>
         <div className="flex gap-2.5">
@@ -191,7 +190,7 @@ export default function ScanPage() {
           <button
             type="submit"
             disabled={loading}
-            className="px-6 py-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs shrink-0 transition-all border border-[#1E293B]"
+            className="px-6 py-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs shrink-0 transition-all border border-[#1E293B]"
           >
             {loading ? "Searching..." : "Lookup Product"}
           </button>
@@ -200,14 +199,14 @@ export default function ScanPage() {
 
       {/* Alerts */}
       {error && (
-        <div className="p-4 rounded-lg bg-red-950/60 border border-red-500/40 text-xs text-red-300 flex items-start space-x-3 font-mono">
+        <div className="p-4 rounded-lg bg-red-950/60 border border-red-500/40 text-xs text-red-300 flex items-start space-x-3">
           <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>
       )}
 
       {successMsg && (
-        <div className="p-4 rounded-lg bg-emerald-950/60 border border-emerald-500/40 text-xs text-emerald-300 flex items-start space-x-3 font-mono">
+        <div className="p-4 rounded-lg bg-emerald-950/60 border border-emerald-500/40 text-xs text-emerald-300 flex items-start space-x-3">
           <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
           <span>{successMsg}</span>
         </div>
@@ -219,20 +218,20 @@ export default function ScanPage() {
           {/* Top Status Banner */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1E293B] pb-4">
             <div>
-              <div className="text-xs font-mono text-cyan-400 font-semibold">{scannedProduct.productId}</div>
-              <h2 className="text-lg font-bold text-white">{scannedProduct.productName}</h2>
-              <div className="text-xs text-[#94A3B8] font-mono mt-0.5">
-                Serial: {scannedProduct.serialNumber} • Order: {scannedProduct.orderId || "N/A"}
+              <div className="text-xs font-mono font-bold text-cyan-400">{scannedProduct.productId}</div>
+              <h2 className="text-lg font-semibold text-white">{scannedProduct.productName}</h2>
+              <div className="text-xs text-[#94A3B8] mt-0.5">
+                Serial: <span className="font-mono text-slate-200">{scannedProduct.serialNumber}</span> • Order: <span className="font-mono text-slate-200">{scannedProduct.orderId || "N/A"}</span>
               </div>
             </div>
 
             <div className="flex items-center space-x-2">
-              <span className="text-xs font-mono px-3 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 font-bold">
+              <span className="text-xs font-medium px-3 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-300">
                 {scannedProduct.currentStage}
               </span>
               <button
                 onClick={() => navigate(`/products/${scannedProduct.productId}`)}
-                className="text-xs text-[#94A3B8] hover:text-white underline font-mono ml-2"
+                className="text-xs text-[#94A3B8] hover:text-white underline ml-2"
               >
                 Full Details
               </button>
@@ -240,26 +239,26 @@ export default function ScanPage() {
           </div>
 
           {/* Location & Condition Quick Metrics */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
             <div className="p-3 rounded-lg bg-[#111821] border border-[#1E293B] space-y-1">
-              <span className="text-[#94A3B8] text-[10px] block">Current Location</span>
-              <span className="text-white font-bold flex items-center space-x-1.5">
+              <span className="text-[#94A3B8] block text-xs">Current location</span>
+              <span className="text-white font-medium flex items-center space-x-1.5">
                 <MapPin className="w-3.5 h-3.5 text-cyan-400" />
                 <span className="truncate">{scannedProduct.currentLocation}</span>
               </span>
             </div>
 
             <div className="p-3 rounded-lg bg-[#111821] border border-[#1E293B] space-y-1">
-              <span className="text-[#94A3B8] text-[10px] block">Product Condition</span>
-              <span className={`font-bold flex items-center space-x-1.5 ${scannedProduct.condition === 'DAMAGED' ? 'text-red-400' : 'text-emerald-400'}`}>
+              <span className="text-[#94A3B8] block text-xs">Product condition</span>
+              <span className={`font-semibold flex items-center space-x-1.5 ${scannedProduct.condition === 'DAMAGED' ? 'text-red-400' : 'text-emerald-400'}`}>
                 <CheckSquare className="w-3.5 h-3.5" />
                 <span>{scannedProduct.condition}</span>
               </span>
             </div>
 
             <div className="p-3 rounded-lg bg-[#111821] border border-[#1E293B] space-y-1">
-              <span className="text-[#94A3B8] text-[10px] block">Security SHA-256</span>
-              <span className="text-cyan-300 font-mono text-[10px] truncate block">
+              <span className="text-[#94A3B8] block text-xs">Security SHA-256</span>
+              <span className="text-cyan-300 font-mono text-xs truncate block">
                 {scannedProduct.productHash?.substring(0, 16)}...
               </span>
             </div>
@@ -269,33 +268,33 @@ export default function ScanPage() {
           {scannedProduct.currentStage !== "DELIVERED" ? (
             <div className="bg-[#111821] p-5 rounded-lg border border-[#1E293B] space-y-5">
               <div className="flex items-center justify-between border-b border-[#1E293B] pb-3">
-                <h3 className="text-sm font-bold text-white flex items-center space-x-2">
+                <h3 className="text-sm font-semibold text-white flex items-center space-x-2">
                   <PackageCheck className="w-4 h-4 text-cyan-400" />
-                  <span>Next Action Checkpoint: {nextStageInfo?.next}</span>
+                  <span>Next action checkpoint: {nextStageInfo?.next}</span>
                 </h3>
-                <span className="text-xs font-mono text-cyan-400">Step {scannedProduct.currentStage} ➔ {nextStageInfo?.next}</span>
+                <span className="text-xs text-cyan-400 font-medium">Step {scannedProduct.currentStage} ➔ {nextStageInfo?.next}</span>
               </div>
 
               {/* Station Location */}
               <div className="space-y-1 text-xs">
-                <label className="font-mono text-slate-300 font-medium block">Station / Facility Location:</label>
+                <label className="text-slate-300 font-medium block">Station / facility location:</label>
                 <input
                   type="text"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   placeholder="e.g. Chennai Packaging Station 4"
-                  className="w-full px-3.5 py-2.5 rounded bg-[#0D121A] border border-[#1E293B] text-white text-xs font-mono"
+                  className="w-full px-3.5 py-2.5 rounded bg-[#0D121A] border border-[#1E293B] text-white text-xs"
                 />
               </div>
 
               {/* Condition Checklist */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 <div className="space-y-1">
-                  <label className="font-mono text-slate-300 block">Package Condition:</label>
+                  <label className="text-slate-300 block font-medium">Package condition:</label>
                   <select
                     value={condition}
                     onChange={(e) => setCondition(e.target.value)}
-                    className="w-full px-3 py-2 rounded bg-[#0D121A] border border-[#1E293B] text-white text-xs font-mono"
+                    className="w-full px-3 py-2 rounded bg-[#0D121A] border border-[#1E293B] text-white text-xs"
                   >
                     <option value="GOOD">Good / Intact</option>
                     <option value="DAMAGED">Damaged / Crushed</option>
@@ -303,11 +302,11 @@ export default function ScanPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-mono text-slate-300 block">Seal Condition:</label>
+                  <label className="text-slate-300 block font-medium">Seal condition:</label>
                   <select
                     value={sealCondition}
                     onChange={(e) => setSealCondition(e.target.value)}
-                    className="w-full px-3 py-2 rounded bg-[#0D121A] border border-[#1E293B] text-white text-xs font-mono"
+                    className="w-full px-3 py-2 rounded bg-[#0D121A] border border-[#1E293B] text-white text-xs"
                   >
                     <option value="INTACT">Intact Seal</option>
                     <option value="BROKEN">Broken / Tampered Seal</option>
@@ -315,11 +314,11 @@ export default function ScanPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-mono text-slate-300 block">Accessories Check:</label>
+                  <label className="text-slate-300 block font-medium">Accessories check:</label>
                   <select
                     value={accessoriesCondition}
                     onChange={(e) => setAccessoriesCondition(e.target.value)}
-                    className="w-full px-3 py-2 rounded bg-[#0D121A] border border-[#1E293B] text-white text-xs font-mono"
+                    className="w-full px-3 py-2 rounded bg-[#0D121A] border border-[#1E293B] text-white text-xs"
                   >
                     <option value="COMPLETE">Complete Accessories</option>
                     <option value="MISSING">Missing Items</option>
@@ -337,7 +336,7 @@ export default function ScanPage() {
                       onChange={(e) => setDamageDetected(e.target.checked)}
                       className="rounded border-[#1E293B] text-red-500 focus:ring-0"
                     />
-                    <span className="text-slate-200 font-mono">Report Damage Detected</span>
+                    <span className="text-slate-200">Report damage detected</span>
                   </label>
 
                   <label className="flex items-center space-x-2 cursor-pointer">
@@ -347,7 +346,7 @@ export default function ScanPage() {
                       onChange={(e) => setReplacementRequired(e.target.checked)}
                       className="rounded border-[#1E293B] text-amber-500 focus:ring-0"
                     />
-                    <span className="text-slate-200 font-mono">Request Product Replacement</span>
+                    <span className="text-slate-200">Request product replacement</span>
                   </label>
                 </div>
 
@@ -357,7 +356,7 @@ export default function ScanPage() {
                       <select
                         value={damageType}
                         onChange={(e) => setDamageType(e.target.value)}
-                        className="px-3 py-1.5 rounded bg-[#0D121A] border border-[#1E293B] text-white font-mono"
+                        className="px-3 py-1.5 rounded bg-[#0D121A] border border-[#1E293B] text-white"
                       >
                         <option value="DAMAGE">Physical Box Damage</option>
                         <option value="BROKEN_SEAL">Broken Security Seal</option>
@@ -370,7 +369,7 @@ export default function ScanPage() {
                       onChange={(e) => setDamageDescription(e.target.value)}
                       placeholder="Describe the damage details..."
                       rows="2"
-                      className="w-full px-3 py-2 rounded bg-[#0D121A] border border-[#1E293B] text-white font-mono text-xs"
+                      className="w-full px-3 py-2 rounded bg-[#0D121A] border border-[#1E293B] text-white text-xs"
                     ></textarea>
                   </div>
                 )}
@@ -378,13 +377,13 @@ export default function ScanPage() {
 
               {/* Remarks & Confirm Action */}
               <div className="space-y-2">
-                <label className="text-xs font-mono text-slate-300 block">Scan Remarks (Optional):</label>
+                <label className="text-xs text-slate-300 block font-medium">Scan remarks (optional):</label>
                 <input
                   type="text"
                   value={remarks}
                   onChange={(e) => setRemarks(e.target.value)}
                   placeholder="e.g. Scanned and confirmed by operator"
-                  className="w-full px-3.5 py-2 rounded bg-[#0D121A] border border-[#1E293B] text-white text-xs font-mono"
+                  className="w-full px-3.5 py-2 rounded bg-[#0D121A] border border-[#1E293B] text-white text-xs"
                 />
               </div>
 
@@ -395,14 +394,14 @@ export default function ScanPage() {
                 className="w-full py-3.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-[#070A0F] font-bold text-xs flex items-center justify-center space-x-2 transition-all shadow-md shadow-emerald-500/20"
               >
                 <CheckCircle className="w-4 h-4" />
-                <span>CONFIRM SCAN: {nextStageInfo?.actionText}</span>
+                <span>Confirm Scan: {nextStageInfo?.actionText}</span>
               </button>
             </div>
           ) : (
             <div className="p-4 rounded-lg bg-emerald-950/40 border border-emerald-500/40 text-center space-y-1">
               <CheckCircle className="w-8 h-8 text-emerald-400 mx-auto" />
-              <div className="text-sm font-bold text-emerald-400">PRODUCT LIFECYCLE COMPLETE</div>
-              <p className="text-xs text-[#94A3B8] font-mono">This product has reached its final DELIVERED stage.</p>
+              <div className="text-sm font-semibold text-emerald-400">Product Lifecycle Complete</div>
+              <p className="text-xs text-[#94A3B8]">This product has reached its final DELIVERED stage.</p>
             </div>
           )}
         </div>

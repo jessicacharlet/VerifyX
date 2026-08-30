@@ -45,15 +45,15 @@ export default function IssuesPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 font-mono">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 font-sans">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0D121A] p-6 rounded-xl border border-[#1E293B] shadow-lg">
         <div className="space-y-1">
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-red-950/60 border border-red-500/30 text-red-400 text-xs font-medium">
             <AlertOctagon className="w-3.5 h-3.5" />
-            <span>DAMAGE & QUALITY ISSUES QUEUE</span>
+            <span>Damage & Quality Issues</span>
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Product Issues & Replacements</h1>
+          <h1 className="text-2xl font-semibold text-white tracking-tight">Product Issues & Replacements</h1>
           <p className="text-xs text-[#94A3B8]">
             Manage reported product box damages, broken seals, missing accessories, and replacement requests.
           </p>
@@ -61,14 +61,14 @@ export default function IssuesPage() {
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex gap-2 text-xs">
+      <div className="flex gap-2 text-xs font-medium">
         {["ALL", "OPEN", "UNDER_REVIEW", "RESOLVED"].map((st) => (
           <button
             key={st}
             onClick={() => setStatusFilter(st)}
-            className={`px-3 py-1.5 rounded transition-all ${
+            className={`px-3 py-1.5 rounded-md transition-all ${
               statusFilter === st
-                ? "bg-red-500 text-white font-bold"
+                ? "bg-red-500 text-white font-semibold"
                 : "bg-[#0D121A] text-[#94A3B8] hover:text-white border border-[#1E293B]"
             }`}
           >
@@ -85,7 +85,7 @@ export default function IssuesPage() {
       ) : issues.length === 0 ? (
         <div className="p-12 text-center bg-[#0D121A] rounded-xl border border-[#1E293B] space-y-2">
           <CheckCircle className="w-10 h-10 text-emerald-400 mx-auto" />
-          <div className="text-sm font-bold text-white">No Issues Reported</div>
+          <div className="text-sm font-semibold text-white">No Issues Reported</div>
           <p className="text-xs text-[#94A3B8]">All products in processing are in good condition.</p>
         </div>
       ) : (
@@ -93,33 +93,33 @@ export default function IssuesPage() {
           {issues.map((iss) => (
             <div key={iss._id} className="bg-[#0D121A] p-5 rounded-xl border border-red-500/30 space-y-4 shadow-xl">
               <div className="flex items-center justify-between border-b border-[#1E293B] pb-3">
-                <span className="text-xs font-bold text-red-400">{iss.issueId}</span>
-                <span className="text-[10px] px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-500/30 font-bold">
+                <span className="text-xs font-mono font-semibold text-red-400">{iss.issueId}</span>
+                <span className="text-xs px-2.5 py-0.5 rounded-full bg-red-950 text-red-300 border border-red-500/30 font-medium">
                   {iss.status}
                 </span>
               </div>
 
               <div className="space-y-1">
-                <div className="text-xs text-cyan-400 font-bold">Product ID: {iss.productId}</div>
+                <div className="text-xs text-cyan-400 font-semibold">Product ID: <span className="font-mono">{iss.productId}</span></div>
                 <div className="text-xs text-white font-semibold">Type: {iss.issueType}</div>
                 <div className="text-xs text-[#94A3B8]">Location: {iss.location}</div>
-                <div className="text-xs text-[#94A3B8]">Reported By: {iss.reportedByName}</div>
+                <div className="text-xs text-[#94A3B8]">Reported by: {iss.reportedByName}</div>
               </div>
 
-              <div className="p-3 rounded bg-[#111821] border border-[#1E293B] text-xs text-slate-300 font-sans">
+              <div className="p-3 rounded bg-[#111821] border border-[#1E293B] text-xs text-slate-300">
                 {iss.description}
               </div>
 
               <div className="pt-2 flex justify-between items-center text-xs">
-                <Link to={`/products/${iss.productId}`} className="text-cyan-400 hover:underline flex items-center space-x-1">
-                  <span>Product Details</span>
+                <Link to={`/products/${iss.productId}`} className="text-cyan-400 hover:underline flex items-center space-x-1 font-medium">
+                  <span>Product details</span>
                   <ArrowRight className="w-3 h-3" />
                 </Link>
 
                 {iss.status === "OPEN" && (
                   <button
                     onClick={() => handleResolve(iss.issueId)}
-                    className="px-3 py-1.5 rounded bg-emerald-500 hover:bg-emerald-400 text-[#070A0F] font-bold"
+                    className="px-3 py-1.5 rounded bg-emerald-500 hover:bg-emerald-400 text-[#070A0F] font-semibold"
                   >
                     Mark Resolved
                   </button>

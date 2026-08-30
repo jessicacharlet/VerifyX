@@ -33,15 +33,15 @@ export default function ShipmentsPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 font-mono">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 font-sans">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0D121A] p-6 rounded-xl border border-[#1E293B] shadow-lg">
         <div className="space-y-1">
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-400 text-xs font-medium">
             <Truck className="w-3.5 h-3.5" />
-            <span>LOGISTICS & SHIPMENT TRACKING</span>
+            <span>Logistics & Shipment Tracking</span>
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Active Shipments & In-Transit Hubs</h1>
+          <h1 className="text-2xl font-semibold text-white tracking-tight">Active Shipments & Transit Hubs</h1>
           <p className="text-xs text-[#94A3B8]">
             Track dispatches, courier tracking numbers, and hub scans across the supply chain network.
           </p>
@@ -49,7 +49,7 @@ export default function ShipmentsPage() {
 
         <Link
           to="/scan"
-          className="px-5 py-3 rounded-lg bg-cyan-400 hover:bg-cyan-300 text-[#070A0F] font-bold text-xs flex items-center justify-center space-x-2 transition-all shadow-md shadow-cyan-500/20"
+          className="px-5 py-3 rounded-lg bg-cyan-400 hover:bg-cyan-300 text-[#070A0F] font-semibold text-xs flex items-center justify-center space-x-2 transition-all shadow-md shadow-cyan-500/20"
         >
           <MapPin className="w-4 h-4" />
           <span>Scan Transit Checkpoint</span>
@@ -57,14 +57,14 @@ export default function ShipmentsPage() {
       </div>
 
       {/* Filter Toolbar */}
-      <div className="flex gap-2 text-xs">
+      <div className="flex gap-2 text-xs font-medium">
         {["ALL", "DISPATCHED", "IN_TRANSIT", "DELIVERED"].map((st) => (
           <button
             key={st}
             onClick={() => setStatusFilter(st)}
-            className={`px-3 py-1.5 rounded transition-all ${
+            className={`px-3 py-1.5 rounded-md transition-all ${
               statusFilter === st
-                ? "bg-cyan-400 text-[#070A0F] font-bold"
+                ? "bg-cyan-400 text-[#070A0F] font-semibold"
                 : "bg-[#0D121A] text-[#94A3B8] hover:text-white border border-[#1E293B]"
             }`}
           >
@@ -81,14 +81,14 @@ export default function ShipmentsPage() {
       ) : shipments.length === 0 ? (
         <div className="p-12 text-center bg-[#0D121A] rounded-xl border border-[#1E293B] space-y-2">
           <Truck className="w-10 h-10 text-[#64748B] mx-auto" />
-          <div className="text-sm font-bold text-white">No Shipments Found</div>
+          <div className="text-sm font-semibold text-white">No Shipments Found</div>
           <p className="text-xs text-[#94A3B8]">No active shipments match the selected filter.</p>
         </div>
       ) : (
         <div className="bg-[#0D121A] rounded-xl border border-[#1E293B] overflow-hidden shadow-xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-[#111821] text-[#94A3B8] uppercase border-b border-[#1E293B]">
+              <thead className="bg-[#111821] text-[#94A3B8] uppercase border-b border-[#1E293B] font-medium">
                 <tr>
                   <th className="px-5 py-3.5">Tracking Number</th>
                   <th className="px-5 py-3.5">Product ID</th>
@@ -102,20 +102,20 @@ export default function ShipmentsPage() {
               <tbody className="divide-y divide-[#1E293B] text-slate-200">
                 {shipments.map((shp) => (
                   <tr key={shp._id} className="hover:bg-[#111821]/60 transition-colors">
-                    <td className="px-5 py-4 font-bold text-cyan-400">{shp.trackingNumber}</td>
-                    <td className="px-5 py-4 font-bold text-white">{shp.productId}</td>
-                    <td className="px-5 py-4 text-[#94A3B8]">{shp.orderId}</td>
-                    <td className="px-5 py-4">{shp.courier}</td>
+                    <td className="px-5 py-4 font-mono font-semibold text-cyan-400">{shp.trackingNumber}</td>
+                    <td className="px-5 py-4 font-mono font-semibold text-white">{shp.productId}</td>
+                    <td className="px-5 py-4 font-mono text-[#94A3B8]">{shp.orderId}</td>
+                    <td className="px-5 py-4 font-medium">{shp.courier}</td>
                     <td className="px-5 py-4 font-semibold text-cyan-300">{shp.currentLocation}</td>
                     <td className="px-5 py-4">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-950 text-cyan-300 border border-cyan-500/30">
+                      <span className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-cyan-950 text-cyan-300 border border-cyan-500/30">
                         {shp.status}
                       </span>
                     </td>
                     <td className="px-5 py-4 text-right">
                       <Link
                         to={`/products/${shp.productId}`}
-                        className="text-cyan-400 hover:underline font-bold inline-flex items-center space-x-1"
+                        className="text-cyan-400 hover:underline font-semibold inline-flex items-center space-x-1"
                       >
                         <span>View Product</span>
                         <ArrowRight className="w-3 h-3" />

@@ -17,8 +17,6 @@ export default function HistoryPage() {
     try {
       setLoading(true);
       setError("");
-      const res = await API.get("/products/PROD-AP-9901/scans");
-      // Also fetch default products to aggregate global scans
       const pRes = await API.get("/products");
       let allScans = [];
       if (pRes.data && pRes.data.products) {
@@ -54,15 +52,15 @@ export default function HistoryPage() {
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 font-mono">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 font-sans">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0D121A] p-6 rounded-xl border border-[#1E293B] shadow-lg">
         <div className="space-y-1">
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-400 text-xs font-medium">
             <Clock className="w-3.5 h-3.5" />
-            <span>GLOBAL SCAN AUDIT LOG</span>
+            <span>Global Scan Audit Log</span>
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Lifecycle Scan Events History</h1>
+          <h1 className="text-2xl font-semibold text-white tracking-tight">Lifecycle Scan Events History</h1>
           <p className="text-xs text-[#94A3B8]">
             Chronological audit trail of all employee QR scans, stage transitions, and location updates.
           </p>
@@ -88,16 +86,16 @@ export default function HistoryPage() {
       ) : filteredScans.length === 0 ? (
         <div className="p-12 text-center bg-[#0D121A] rounded-xl border border-[#1E293B] space-y-2">
           <Clock className="w-10 h-10 text-[#64748B] mx-auto" />
-          <div className="text-sm font-bold text-white">No Scan Events Found</div>
+          <div className="text-sm font-semibold text-white">No Scan Events Found</div>
           <p className="text-xs text-[#94A3B8]">No employee scan events recorded matching criteria.</p>
         </div>
       ) : (
         <div className="bg-[#0D121A] rounded-xl border border-[#1E293B] overflow-hidden shadow-xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-[#111821] text-[#94A3B8] uppercase border-b border-[#1E293B]">
+              <thead className="bg-[#111821] text-[#94A3B8] uppercase border-b border-[#1E293B] font-medium">
                 <tr>
-                  <th className="px-5 py-3.5">Date & Time</th>
+                  <th className="px-5 py-3.5">Date & time</th>
                   <th className="px-5 py-3.5">Product ID</th>
                   <th className="px-5 py-3.5">Stage</th>
                   <th className="px-5 py-3.5">Location</th>
@@ -113,16 +111,16 @@ export default function HistoryPage() {
                     <td className="px-5 py-4 text-[#94A3B8]">
                       {new Date(s.timestamp || s.createdAt).toLocaleString()}
                     </td>
-                    <td className="px-5 py-4 font-bold text-cyan-400">{s.productId}</td>
-                    <td className="px-5 py-4 font-bold text-white">
-                      <span className="px-2 py-0.5 rounded text-[10px] bg-cyan-950 text-cyan-300 border border-cyan-500/30">
+                    <td className="px-5 py-4 font-mono font-semibold text-cyan-400">{s.productId}</td>
+                    <td className="px-5 py-4 font-semibold text-white">
+                      <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-cyan-950 text-cyan-300 border border-cyan-500/30">
                         {s.stage}
                       </span>
                     </td>
-                    <td className="px-5 py-4 font-semibold text-cyan-300">{s.location}</td>
+                    <td className="px-5 py-4 font-medium text-cyan-300">{s.location}</td>
                     <td className="px-5 py-4">{s.employeeName}</td>
                     <td className="px-5 py-4">
-                      <span className={s.condition === "DAMAGED" ? "text-red-400 font-bold" : "text-emerald-400 font-bold"}>
+                      <span className={s.condition === "DAMAGED" ? "text-red-400 font-semibold" : "text-emerald-400 font-semibold"}>
                         {s.condition}
                       </span>
                     </td>
@@ -130,7 +128,7 @@ export default function HistoryPage() {
                     <td className="px-5 py-4 text-right">
                       <Link
                         to={`/products/${s.productId}`}
-                        className="text-cyan-400 hover:underline font-bold inline-flex items-center space-x-1"
+                        className="text-cyan-400 hover:underline font-semibold inline-flex items-center space-x-1"
                       >
                         <span>View</span>
                         <ArrowRight className="w-3 h-3" />

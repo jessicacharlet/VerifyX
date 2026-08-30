@@ -14,11 +14,11 @@ import {
 import API from "../services/api";
 
 const PUBLIC_JOURNEY_STAGES = [
-  { key: "ORDER_RECEIVED", label: "Order Received" },
+  { key: "ORDER_RECEIVED", label: "Order received" },
   { key: "PACKED", label: "Packed" },
-  { key: "QUALITY_CHECK", label: "Quality Checked" },
+  { key: "QUALITY_CHECK", label: "Quality checked" },
   { key: "DISPATCHED", label: "Dispatched" },
-  { key: "IN_TRANSIT", label: "In Transit" },
+  { key: "IN_TRANSIT", label: "In transit" },
   { key: "DELIVERED", label: "Delivered" },
 ];
 
@@ -51,9 +51,9 @@ export default function VerificationResultPage() {
 
   if (loading) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-16 text-center space-y-4 font-mono">
+      <div className="max-w-3xl mx-auto px-4 py-16 text-center space-y-4 font-sans">
         <div className="animate-spin w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full mx-auto"></div>
-        <div className="text-sm font-bold text-white">Verifying Product Authenticity...</div>
+        <div className="text-sm font-semibold text-white">Verifying Product Authenticity...</div>
         <p className="text-xs text-[#94A3B8]">Validating cryptographic SHA-256 digital signature and supply chain timeline.</p>
       </div>
     );
@@ -61,11 +61,11 @@ export default function VerificationResultPage() {
 
   if (error || !data) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-12 text-center space-y-4 font-mono">
+      <div className="max-w-2xl mx-auto px-4 py-12 text-center space-y-4 font-sans">
         <AlertTriangle className="w-12 h-12 text-red-400 mx-auto" />
-        <div className="text-lg font-bold text-white">Verification Service Error</div>
+        <div className="text-lg font-semibold text-white">Verification Service Error</div>
         <p className="text-xs text-red-300">{error || "Could not retrieve verification data."}</p>
-        <Link to="/" className="inline-block px-4 py-2 bg-slate-800 text-white rounded text-xs">
+        <Link to="/" className="inline-block px-4 py-2 bg-slate-800 text-white rounded text-xs font-medium">
           Return Home
         </Link>
       </div>
@@ -75,7 +75,7 @@ export default function VerificationResultPage() {
   const { isAuthentic, product, scans = [], status, message, hashMatch } = data;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 space-y-8 font-mono">
+    <div className="max-w-4xl mx-auto px-4 py-8 space-y-8 font-sans">
       {/* Top Banner: Verification Result */}
       {isAuthentic ? (
         <div className="bg-[#0D121A] p-8 rounded-2xl border-2 border-emerald-500/50 shadow-2xl space-y-4 text-center">
@@ -83,11 +83,11 @@ export default function VerificationResultPage() {
             <CheckCircle className="w-10 h-10" />
           </div>
           <div className="space-y-1">
-            <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-950 text-emerald-400 text-xs font-bold border border-emerald-500/40">
+            <div className="inline-flex items-center space-x-1.5 px-3.5 py-1 rounded-full bg-emerald-950 text-emerald-400 text-xs font-semibold border border-emerald-500/40">
               <ShieldCheck className="w-4 h-4" />
-              <span>AUTHENTIC PRODUCT VERIFIED</span>
+              <span>Authentic Product Verified</span>
             </div>
-            <h1 className="text-2xl font-bold text-white pt-2">{product?.productName}</h1>
+            <h1 className="text-2xl sm:text-3xl font-semibold text-white pt-2">{product?.productName}</h1>
             <p className="text-xs text-[#94A3B8]">{message}</p>
           </div>
         </div>
@@ -97,10 +97,10 @@ export default function VerificationResultPage() {
             <ShieldAlert className="w-10 h-10" />
           </div>
           <div className="space-y-1">
-            <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-red-950 text-red-400 text-xs font-bold border border-red-500/40">
-              <span>UNVERIFIED / SUSPICIOUS</span>
+            <div className="inline-flex items-center space-x-1.5 px-3.5 py-1 rounded-full bg-red-950 text-red-400 text-xs font-semibold border border-red-500/40">
+              <span>Unverified / Suspicious</span>
             </div>
-            <h1 className="text-2xl font-bold text-white pt-2">Warning: Product Unverified</h1>
+            <h1 className="text-2xl font-semibold text-white pt-2">Warning: Product Unverified</h1>
             <p className="text-xs text-red-300">{message}</p>
           </div>
         </div>
@@ -109,30 +109,30 @@ export default function VerificationResultPage() {
       {/* Product Information Card */}
       {product && (
         <div className="bg-[#0D121A] p-6 rounded-xl border border-[#1E293B] space-y-4 shadow-xl">
-          <h3 className="text-sm font-bold text-white border-b border-[#1E293B] pb-3 flex items-center space-x-2">
+          <h3 className="text-sm font-semibold text-white border-b border-[#1E293B] pb-3 flex items-center space-x-2">
             <Package className="w-4 h-4 text-cyan-400" />
-            <span>Product Details</span>
+            <span>Product details</span>
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             <div className="p-3.5 rounded bg-[#111821] border border-[#1E293B]">
-              <span className="text-[#94A3B8] block text-[10px]">Product Model</span>
-              <span className="text-white font-bold">{product.productName}</span>
+              <span className="text-[#94A3B8] block text-xs">Product model</span>
+              <span className="text-white font-semibold">{product.productName}</span>
             </div>
 
             <div className="p-3.5 rounded bg-[#111821] border border-[#1E293B]">
-              <span className="text-[#94A3B8] block text-[10px]">Product ID</span>
-              <span className="text-cyan-400 font-bold">{product.productId}</span>
+              <span className="text-[#94A3B8] block text-xs">Product ID</span>
+              <span className="font-mono text-cyan-400 font-semibold">{product.productId}</span>
             </div>
 
             <div className="p-3.5 rounded bg-[#111821] border border-[#1E293B]">
-              <span className="text-[#94A3B8] block text-[10px]">Brand / Manufacturer</span>
-              <span className="text-white font-bold">{product.brandName}</span>
+              <span className="text-[#94A3B8] block text-xs">Brand / manufacturer</span>
+              <span className="text-white font-semibold">{product.brandName}</span>
             </div>
 
             <div className="p-3.5 rounded bg-[#111821] border border-[#1E293B]">
-              <span className="text-[#94A3B8] block text-[10px]">Current Status</span>
-              <span className="text-emerald-400 font-bold">{product.currentStage || "DELIVERED"}</span>
+              <span className="text-[#94A3B8] block text-xs">Current status</span>
+              <span className="text-emerald-400 font-semibold">{product.currentStage || "DELIVERED"}</span>
             </div>
           </div>
         </div>
@@ -140,9 +140,9 @@ export default function VerificationResultPage() {
 
       {/* Public Product Journey Timeline */}
       <div className="bg-[#0D121A] p-6 rounded-xl border border-[#1E293B] space-y-6 shadow-xl">
-        <h3 className="text-sm font-bold text-white border-b border-[#1E293B] pb-3 flex items-center space-x-2">
+        <h3 className="text-sm font-semibold text-white border-b border-[#1E293B] pb-3 flex items-center space-x-2">
           <Clock className="w-4 h-4 text-cyan-400" />
-          <span>Product Supply Chain Journey</span>
+          <span>Product supply chain journey</span>
         </h3>
 
         <div className="space-y-4">
@@ -157,12 +157,12 @@ export default function VerificationResultPage() {
                 </div>
                 <div className="p-3.5 rounded-lg bg-[#111821] border border-[#1E293B] flex-grow flex justify-between items-center text-xs">
                   <div>
-                    <div className="font-bold text-white">{stg.label}</div>
+                    <div className="font-semibold text-white">{stg.label}</div>
                     {scanMatch?.location && (
-                      <div className="text-[11px] text-cyan-300">Location: {scanMatch.location}</div>
+                      <div className="text-xs text-cyan-300 font-medium">Location: {scanMatch.location}</div>
                     )}
                   </div>
-                  <div className="text-[10px] text-[#94A3B8]">
+                  <div className="text-xs text-[#94A3B8]">
                     {scanMatch?.timestamp ? new Date(scanMatch.timestamp).toLocaleDateString() : isCompleted ? "Verified ✓" : "Pending"}
                   </div>
                 </div>
@@ -174,8 +174,8 @@ export default function VerificationResultPage() {
 
       {/* Cryptographic Audit Proof */}
       <div className="bg-[#0D121A] p-5 rounded-xl border border-cyan-500/30 text-center space-y-2 text-xs">
-        <div className="text-slate-300 font-bold">Verified on Ethereum Blockchain Audit Layer</div>
-        <div className="text-[10px] text-cyan-400 font-mono">SHA-256 Fingerprint: {data.storedHash || product?.productHash}</div>
+        <div className="text-slate-300 font-medium">Verified on Ethereum blockchain audit layer</div>
+        <div className="text-xs text-cyan-400 font-mono">SHA-256 Fingerprint: {data.storedHash || product?.productHash}</div>
       </div>
     </div>
   );
