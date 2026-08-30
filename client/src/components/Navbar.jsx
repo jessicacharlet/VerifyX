@@ -1,26 +1,23 @@
 import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { useWeb3 } from "../context/Web3Context";
 import {
   ShieldCheck,
-  Wallet,
   LogOut,
   Menu,
   X,
   LayoutDashboard,
   QrCode,
-  Lock,
   Package,
   ShoppingBag,
   Truck,
   AlertOctagon,
   Clock,
+  UserCheck,
 } from "lucide-react";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
-  const { account, connectWallet, isConnecting } = useWeb3();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -136,31 +133,18 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* Right Controls: Web3 Wallet & User */}
+          {/* Right Controls: User Info & Sign Out */}
           <div className="hidden lg:flex items-center space-x-3">
-            <button
-              onClick={connectWallet}
-              disabled={isConnecting}
-              className="px-3 py-1.5 rounded-md text-xs font-mono font-medium flex items-center space-x-2 bg-[#0D121A] hover:bg-[#111821] text-[#F5F7FA] border border-[#1E293B]"
-            >
-              <span className={`w-2 h-2 rounded-full ${account ? "bg-emerald-500 animate-pulse" : "bg-amber-400"}`}></span>
-              <Wallet className="w-3.5 h-3.5 text-[#94A3B8]" />
-              <span className={account ? "text-emerald-400 font-medium" : "text-amber-400"}>
-                {account
-                  ? `${account.substring(0, 6)}...${account.substring(account.length - 4)}`
-                  : "Wallet Off"}
-              </span>
-            </button>
-
             {user ? (
-              <div className="flex items-center space-x-2 border-l border-[#1E293B] pl-3">
+              <div className="flex items-center space-x-3 bg-[#0D121A] px-3.5 py-1.5 rounded-lg border border-[#1E293B]">
+                <UserCheck className="w-4 h-4 text-cyan-400" />
                 <div className="text-right leading-tight">
                   <div className="text-xs font-semibold text-white">{user.name}</div>
                   <div className="text-[11px] text-cyan-400 capitalize">{user.role}</div>
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="p-1.5 text-[#94A3B8] hover:text-red-400 hover:bg-red-500/10 rounded-md"
+                  className="p-1.5 text-[#94A3B8] hover:text-red-400 hover:bg-red-500/10 rounded-md transition-colors"
                   title="Sign out"
                 >
                   <LogOut className="w-4 h-4" />
@@ -169,9 +153,9 @@ export default function Navbar() {
             ) : (
               <Link
                 to="/login"
-                className="px-3.5 py-1.5 rounded-md text-xs font-medium text-cyan-400 bg-[#111821] border border-[#1E293B]"
+                className="px-4 py-2 rounded-md text-xs font-medium text-cyan-400 bg-[#111821] border border-[#1E293B] hover:bg-[#1A2333]"
               >
-                Login
+                Employee Login
               </Link>
             )}
           </div>
