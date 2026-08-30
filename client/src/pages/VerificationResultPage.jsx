@@ -54,7 +54,7 @@ export default function VerificationResultPage() {
       <div className="max-w-3xl mx-auto px-4 py-16 text-center space-y-4 font-sans">
         <div className="animate-spin w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full mx-auto"></div>
         <div className="text-sm font-semibold text-white">Verifying Product Authenticity...</div>
-        <p className="text-xs text-[#94A3B8]">Validating cryptographic SHA-256 digital signature and supply chain timeline.</p>
+        <p className="text-xs text-[#94A3B8]">Validating cryptographic SHA-256 digital signature and product lifecycle timeline.</p>
       </div>
     );
   }
@@ -142,7 +142,7 @@ export default function VerificationResultPage() {
       <div className="bg-[#0D121A] p-6 rounded-xl border border-[#1E293B] space-y-6 shadow-xl">
         <h3 className="text-sm font-semibold text-white border-b border-[#1E293B] pb-3 flex items-center space-x-2">
           <Clock className="w-4 h-4 text-cyan-400" />
-          <span>Product supply chain journey</span>
+          <span>Product lifecycle journey</span>
         </h3>
 
         <div className="space-y-4">

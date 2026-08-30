@@ -96,7 +96,7 @@ export default function ManufacturerDashboard() {
             <span>Operational Hub</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight">
-            Company Operations & Supply Chain
+            Company Operations & Product Lifecycle
           </h1>
           <p className="text-xs sm:text-sm text-[#94A3B8]">
             Real-time tracking of order creation, QR packaging, quality control, and customer deliveries.

@@ -43,7 +43,7 @@ export default function ShipmentsPage() {
           </div>
           <h1 className="text-2xl font-semibold text-white tracking-tight">Active Shipments & Transit Hubs</h1>
           <p className="text-xs text-[#94A3B8]">
-            Track dispatches, courier tracking numbers, and hub scans across the supply chain network.
+            Track dispatches, courier tracking numbers, and hub scans across the logistics network.
           </p>
         </div>
 

@@ -41,7 +41,7 @@ export default function Navbar() {
             <div className="flex items-center space-x-2">
               <span className="text-base font-semibold text-white tracking-tight">VerifyX</span>
               <span className="text-xs font-medium px-2 py-0.5 rounded bg-[#111821] text-[#94A3B8] border border-[#1E293B]">
-                Supply Chain
+                Product Lifecycle
               </span>
             </div>
           </Link>
