@@ -1,10 +1,13 @@
 const Shipment = require("../models/Shipment");
+const { ensureDbConnected } = require("../utils/dbConnect");
 
 // @desc    Get all active shipments with filter
 // @route   GET /api/shipments
 // @access  Public / Private
 const getShipments = async (req, res) => {
   try {
+    await ensureDbConnected();
+
     const { status, search } = req.query;
     const query = {};
 

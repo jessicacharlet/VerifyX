@@ -1,11 +1,14 @@
 const ProductIssue = require("../models/ProductIssue");
 const Product = require("../models/Product");
+const { ensureDbConnected } = require("../utils/dbConnect");
 
 // @desc    Report a new product damage / quality issue
 // @route   POST /api/issues
 // @access  Public / Private
 const createIssue = async (req, res) => {
   try {
+    await ensureDbConnected();
+
     const { productId, issueType, stage, location, description, photoUrl } = req.body;
 
     if (!productId || !issueType || !description) {
@@ -31,7 +34,6 @@ const createIssue = async (req, res) => {
       status: "OPEN",
     });
 
-    // Mark product as damaged / requiring attention
     await Product.findOneAndUpdate(
       { productId: cleanId },
       { condition: "DAMAGED", damageDetected: true }
@@ -57,6 +59,8 @@ const createIssue = async (req, res) => {
 // @access  Public / Private
 const getIssues = async (req, res) => {
   try {
+    await ensureDbConnected();
+
     const { status } = req.query;
     const query = {};
     if (status && status !== "ALL") query.status = status;
@@ -82,6 +86,8 @@ const getIssues = async (req, res) => {
 // @access  Public / Private
 const updateIssueStatus = async (req, res) => {
   try {
+    await ensureDbConnected();
+
     const { status, resolutionRemarks } = req.body;
     const issue = await ProductIssue.findOne({ issueId: req.params.id });
 

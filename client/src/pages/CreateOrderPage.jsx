@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { ShoppingBag, ArrowLeft, CheckCircle, AlertTriangle } from "lucide-react";
+import { ShoppingBag, ArrowLeft, CheckCircle, AlertTriangle, Loader2 } from "lucide-react";
 import API from "../services/api";
 
 export default function CreateOrderPage() {
@@ -27,21 +27,43 @@ export default function CreateOrderPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return; // Prevent duplicate clicks
+
     try {
       setLoading(true);
       setError("");
       setSuccess("");
 
-      const res = await API.post("/orders", formData);
-      if (res.data && res.data.order) {
-        setSuccess(`Order ${res.data.order.orderId} created successfully! Redirecting...`);
+      const payload = {
+        customerName: formData.customerName.trim(),
+        customerContact: formData.customerContact.trim(),
+        customerAddress: formData.customerAddress.trim(),
+        productName: formData.productName.trim(),
+        model: formData.model ? formData.model.trim() : formData.productName.trim(),
+        quantity: Math.max(1, parseInt(formData.quantity, 10) || 1),
+        expectedDeliveryDate: formData.expectedDeliveryDate || undefined,
+        remarks: formData.remarks ? formData.remarks.trim() : "",
+      };
+
+      const res = await API.post("/orders", payload);
+      if (res.data && res.data.success && res.data.order) {
+        const createdOrder = res.data.order;
+        setSuccess(`✓ Order ${createdOrder.orderId} created successfully! Initial status: ${createdOrder.status}. Redirecting to Order Details...`);
+        
         setTimeout(() => {
-          navigate(`/orders/${res.data.order.orderId}`);
-        }, 1500);
+          navigate(`/orders/${createdOrder.orderId}`);
+        }, 1200);
+      } else {
+        setError(res.data?.message || "Failed to create order.");
       }
     } catch (err) {
-      console.error("Create order error:", err);
-      setError(err.response?.data?.message || "Failed to create order.");
+      console.error("Create order submit error:", err);
+      const serverErrMsg =
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to create order. Please check network and database connection.";
+      setError(`Failed to create order: ${serverErrMsg}`);
     } finally {
       setLoading(false);
     }
@@ -57,7 +79,7 @@ export default function CreateOrderPage() {
         <span>Back to Orders List</span>
       </Link>
 
-      <div className="bg-[#0D121A] p-6 rounded-xl border border-[#1E293B] shadow-xl space-y-6">
+      <div className="bg-[#0D121A] p-6 sm:p-8 rounded-xl border border-[#1E293B] shadow-xl space-y-6">
         <div className="border-b border-[#1E293B] pb-4 space-y-1">
           <h1 className="text-xl font-semibold text-white flex items-center space-x-2">
             <ShoppingBag className="w-5 h-5 text-cyan-400" />
@@ -69,15 +91,15 @@ export default function CreateOrderPage() {
         </div>
 
         {error && (
-          <div className="p-3.5 rounded-lg bg-red-950/60 border border-red-500/40 text-xs text-red-300 flex items-center space-x-2">
-            <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+          <div className="p-4 rounded-lg bg-red-950/60 border border-red-500/40 text-xs text-red-300 flex items-start space-x-2">
+            <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>
         )}
 
         {success && (
-          <div className="p-3.5 rounded-lg bg-emerald-950/60 border border-emerald-500/40 text-xs text-emerald-300 flex items-center space-x-2">
-            <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+          <div className="p-4 rounded-lg bg-emerald-950/60 border border-emerald-500/40 text-xs text-emerald-300 flex items-start space-x-2">
+            <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
             <span>{success}</span>
           </div>
         )}
@@ -92,8 +114,8 @@ export default function CreateOrderPage() {
                 value={formData.customerName}
                 onChange={handleChange}
                 required
-                placeholder="e.g. Rahul Kumar"
-                className="w-full px-3.5 py-2.5 rounded-[#0D121A] bg-[#111821] border border-[#1E293B] text-white focus:outline-none focus:border-cyan-400"
+                placeholder="e.g. Jessica Charlet"
+                className="w-full px-3.5 py-2.5 rounded bg-[#111821] border border-[#1E293B] text-white focus:outline-none focus:border-cyan-400"
               />
             </div>
 
@@ -105,8 +127,8 @@ export default function CreateOrderPage() {
                 value={formData.customerContact}
                 onChange={handleChange}
                 required
-                placeholder="e.g. +91 98765 43210"
-                className="w-full px-3.5 py-2.5 rounded-[#0D121A] bg-[#111821] border border-[#1E293B] text-white focus:outline-none focus:border-cyan-400"
+                placeholder="e.g. +9197397573055"
+                className="w-full px-3.5 py-2.5 rounded bg-[#111821] border border-[#1E293B] text-white focus:outline-none focus:border-cyan-400"
               />
             </div>
           </div>
@@ -119,8 +141,8 @@ export default function CreateOrderPage() {
               onChange={handleChange}
               required
               rows="2"
-              placeholder="e.g. 42 Connaught Place, New Delhi, 110001"
-              className="w-full px-3.5 py-2.5 rounded-[#0D121A] bg-[#111821] border border-[#1E293B] text-white focus:outline-none focus:border-cyan-400"
+              placeholder="e.g. 1996, Vasantham Colony, Anna Nagar West"
+              className="w-full px-3.5 py-2.5 rounded bg-[#111821] border border-[#1E293B] text-white focus:outline-none focus:border-cyan-400"
             ></textarea>
           </div>
 
@@ -134,7 +156,7 @@ export default function CreateOrderPage() {
                 onChange={handleChange}
                 required
                 placeholder="e.g. Samsung Galaxy S21 FE"
-                className="w-full px-3.5 py-2.5 rounded-[#0D121A] bg-[#111821] border border-[#1E293B] text-white focus:outline-none focus:border-cyan-400"
+                className="w-full px-3.5 py-2.5 rounded bg-[#111821] border border-[#1E293B] text-white focus:outline-none focus:border-cyan-400"
               />
             </div>
 
@@ -146,7 +168,7 @@ export default function CreateOrderPage() {
                 value={formData.quantity}
                 onChange={handleChange}
                 min="1"
-                className="w-full px-3.5 py-2.5 rounded-[#0D121A] bg-[#111821] border border-[#1E293B] text-white focus:outline-none focus:border-cyan-400"
+                className="w-full px-3.5 py-2.5 rounded bg-[#111821] border border-[#1E293B] text-white focus:outline-none focus:border-cyan-400"
               />
             </div>
           </div>
@@ -159,7 +181,7 @@ export default function CreateOrderPage() {
                 name="expectedDeliveryDate"
                 value={formData.expectedDeliveryDate}
                 onChange={handleChange}
-                className="w-full px-3.5 py-2.5 rounded-[#0D121A] bg-[#111821] border border-[#1E293B] text-white focus:outline-none focus:border-cyan-400"
+                className="w-full px-3.5 py-2.5 rounded bg-[#111821] border border-[#1E293B] text-white focus:outline-none focus:border-cyan-400"
               />
             </div>
 
@@ -170,8 +192,8 @@ export default function CreateOrderPage() {
                 name="remarks"
                 value={formData.remarks}
                 onChange={handleChange}
-                placeholder="e.g. Handle fragile glass"
-                className="w-full px-3.5 py-2.5 rounded-[#0D121A] bg-[#111821] border border-[#1E293B] text-white focus:outline-none focus:border-cyan-400"
+                placeholder="e.g. Handle with care"
+                className="w-full px-3.5 py-2.5 rounded bg-[#111821] border border-[#1E293B] text-white focus:outline-none focus:border-cyan-400"
               />
             </div>
           </div>
@@ -179,9 +201,16 @@ export default function CreateOrderPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 rounded-lg bg-cyan-400 hover:bg-cyan-300 text-[#070A0F] font-semibold text-xs transition-all shadow-md shadow-cyan-500/20"
+            className="w-full py-3.5 rounded-lg bg-cyan-400 hover:bg-cyan-300 disabled:opacity-50 text-[#070A0F] font-semibold text-xs transition-all shadow-md shadow-cyan-500/20 flex items-center justify-center space-x-2 cursor-pointer"
           >
-            {loading ? "Creating Order..." : "Confirm & Create Order"}
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Creating Order...</span>
+              </>
+            ) : (
+              <span>Confirm & Create Order</span>
+            )}
           </button>
         </form>
       </div>

@@ -7,7 +7,7 @@
     "install:all": "npm install && npm --prefix client install && npm --prefix blockchain install",
     "vercel-build": "npm run install:all && npm --prefix client run build",
     "seed": "node server/scripts/seed.js",
-    "server": "npm --prefix server start",
+    "server": "node server/server.js",
     "client": "npm --prefix client run dev",
     "hardhat:node": "npm --prefix blockchain run node",
     "hardhat:test": "npm --prefix blockchain run test",

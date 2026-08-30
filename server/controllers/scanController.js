@@ -4,6 +4,7 @@ const Order = require("../models/Order");
 const ProductIssue = require("../models/ProductIssue");
 const Shipment = require("../models/Shipment");
 const { recordLifecycleEventOnChain } = require("../services/blockchainService");
+const { ensureDbConnected } = require("../utils/dbConnect");
 const crypto = require("crypto");
 
 // Allowed Strict Lifecycle Sequence
@@ -23,6 +24,8 @@ const STAGE_ORDER = [
 // @access  Private / Public
 const recordScanEvent = async (req, res) => {
   try {
+    await ensureDbConnected();
+
     const {
       productId,
       targetStage,
@@ -67,7 +70,7 @@ const recordScanEvent = async (req, res) => {
     const currentStageIndex = STAGE_ORDER.indexOf(product.currentStage);
     const targetStageIndex = STAGE_ORDER.indexOf(targetStage);
 
-    // Enforce strict stage transition progression (must be next sequential stage or re-scan in transit)
+    // Enforce strict stage transition progression
     if (
       targetStage !== "IN_TRANSIT" &&
       targetStageIndex !== -1 &&
@@ -85,7 +88,6 @@ const recordScanEvent = async (req, res) => {
     const employeeName = req.user ? req.user.name : "Supply Chain Operator";
     const empId = req.user ? req.user._id : null;
 
-    // Optional Blockchain SHA-256 Hash Recording
     let blockchainHash = "";
     try {
       const eventHashResult = await recordLifecycleEventOnChain(product.productId, targetStage, loc);
@@ -94,7 +96,6 @@ const recordScanEvent = async (req, res) => {
       console.warn("Blockchain audit log skipped:", bcErr.message);
     }
 
-    // Create ScanEvent Record
     const scanEvent = await ScanEvent.create({
       scanId,
       productId: product.productId,
@@ -113,7 +114,6 @@ const recordScanEvent = async (req, res) => {
       timestamp: new Date(),
     });
 
-    // Handle Damage / Quality Failure -> Create ProductIssue
     if (damageDetected || condition === "DAMAGED" || targetStage === "QUALITY_ISSUE") {
       const issueId = "ISSUE-" + Date.now().toString(36).toUpperCase();
       await ProductIssue.create({
@@ -132,7 +132,6 @@ const recordScanEvent = async (req, res) => {
       product.damageDetected = true;
     }
 
-    // Handle Replacement Request
     if (replacementRequired) {
       product.replacementRequired = true;
       product.currentStage = "REPLACED";
@@ -143,7 +142,6 @@ const recordScanEvent = async (req, res) => {
     product.currentLocation = loc;
     await product.save();
 
-    // Update parent Order status if linked
     if (product.orderId) {
       const order = await Order.findOne({ orderId: product.orderId });
       if (order) {
@@ -152,7 +150,6 @@ const recordScanEvent = async (req, res) => {
       }
     }
 
-    // Create Shipment record on DISPATCHED
     if (targetStage === "DISPATCHED") {
       const trackNo = trackingNumber || "TRK-VX-" + Math.floor(10000000 + Math.random() * 90000000);
       await Shipment.create({
@@ -205,6 +202,8 @@ const recordScanEvent = async (req, res) => {
 // @access  Public / Private
 const getProductScans = async (req, res) => {
   try {
+    await ensureDbConnected();
+
     const param = req.params.id.trim().toUpperCase();
     const scans = await ScanEvent.find({
       $or: [{ productId: param }, { orderId: param }],

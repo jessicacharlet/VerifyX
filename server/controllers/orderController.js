@@ -2,14 +2,39 @@ const Order = require("../models/Order");
 const Product = require("../models/Product");
 const ScanEvent = require("../models/ScanEvent");
 const { generateProductHash } = require("../utils/hashGenerator");
+const { ensureDbConnected } = require("../utils/dbConnect");
 const QRCode = require("qrcode");
 const crypto = require("crypto");
+
+// Helper function to parse dates in DD-MM-YYYY, DD/MM/YYYY, or YYYY-MM-DD formats
+function parseFlexibleDate(dateStr) {
+  if (!dateStr) return new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+  if (dateStr instanceof Date && !isNaN(dateStr)) return dateStr;
+
+  const str = String(dateStr).trim();
+  
+  // DD-MM-YYYY or DD/MM/YYYY
+  if (/^\d{1,2}[-\/]\d{1,2}[-\/]\d{4}$/.test(str)) {
+    const parts = str.split(/[-\/]/);
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const year = parseInt(parts[2], 10);
+    const d = new Date(year, month, day);
+    if (!isNaN(d)) return d;
+  }
+
+  const d = new Date(str);
+  return !isNaN(d) ? d : new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+}
 
 // @desc    Create a new customer order
 // @route   POST /api/orders
 // @access  Private / Public
 const createOrder = async (req, res) => {
   try {
+    // 1. Ensure DB Connection in Serverless Environment
+    await ensureDbConnected();
+
     const {
       customerName,
       customerContact,
@@ -28,23 +53,44 @@ const createOrder = async (req, res) => {
       });
     }
 
-    const orderId = "ORD-" + new Date().getFullYear() + "-" + Math.floor(10000 + Math.random() * 90000);
+    // 2. Normalize and Sanitize Inputs
+    const cName = String(customerName).trim();
+    const cContact = String(customerContact).trim();
+    const cAddress = String(customerAddress).trim();
+    const pName = String(productName).trim();
+    const pModel = model ? String(model).trim() : pName;
+    const parsedQuantity = Math.max(1, parseInt(quantity, 10) || 1);
+    const parsedDeliveryDate = parseFlexibleDate(expectedDeliveryDate);
 
+    // 3. Generate Unique Order ID (with collision check)
+    let orderId = "";
+    let isUnique = false;
+    let attempts = 0;
+
+    while (!isUnique && attempts < 5) {
+      const randomNum = Math.floor(10000 + Math.random() * 90000);
+      orderId = `ORD-${new Date().getFullYear()}-${randomNum}`;
+      const existing = await Order.findOne({ orderId });
+      if (!existing) isUnique = true;
+      attempts++;
+    }
+
+    // 4. Save Order to Database
     const order = await Order.create({
       orderId,
-      customerName: customerName.trim(),
-      customerContact: customerContact.trim(),
-      customerAddress: customerAddress.trim(),
-      productName: productName.trim(),
-      model: model ? model.trim() : "",
-      quantity: Number(quantity) || 1,
-      expectedDeliveryDate: expectedDeliveryDate
-        ? new Date(expectedDeliveryDate)
-        : new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+      customerName: cName,
+      customerContact: cContact,
+      customerAddress: cAddress,
+      productName: pName,
+      model: pModel,
+      quantity: parsedQuantity,
+      expectedDeliveryDate: parsedDeliveryDate,
       paymentStatus: "PAID",
       status: "ORDER_RECEIVED",
-      remarks: remarks || "",
+      remarks: remarks ? String(remarks).trim() : "",
     });
+
+    console.log(`✅ Order ${orderId} created successfully for customer ${cName}`);
 
     return res.status(201).json({
       success: true,
@@ -66,6 +112,8 @@ const createOrder = async (req, res) => {
 // @access  Public / Private
 const getOrders = async (req, res) => {
   try {
+    await ensureDbConnected();
+
     const { search, status } = req.query;
     const query = {};
 
@@ -95,6 +143,7 @@ const getOrders = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch orders.",
+      error: error.message,
     });
   }
 };
@@ -104,6 +153,8 @@ const getOrders = async (req, res) => {
 // @access  Public / Private
 const getOrderById = async (req, res) => {
   try {
+    await ensureDbConnected();
+
     const param = req.params.id.trim().toUpperCase();
     let order = await Order.findOne({ orderId: param }).populate("assignedProducts");
 
@@ -124,6 +175,7 @@ const getOrderById = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch order details.",
+      error: error.message,
     });
   }
 };
@@ -133,6 +185,8 @@ const getOrderById = async (req, res) => {
 // @access  Private / Public
 const assignProductToOrder = async (req, res) => {
   try {
+    await ensureDbConnected();
+
     const orderIdParam = req.params.id.trim().toUpperCase();
     const { serialNumber, batchNumber, brandName, category, imei, warehouse } = req.body;
 
