@@ -1,121 +1,91 @@
-# VeriMark — Blockchain-Based Product Authentication System
+# VerifyX — Enterprise Supply Chain Tracking & QR Authenticity Verification System
 
-> A production-grade, full-stack decentralized product authenticity verification platform leveraging **Ethereum Solidity Smart Contracts**, **SHA-256 Cryptographic Hashing**, **Node.js/Express REST API**, **MongoDB**, **Python AI Image Analysis Microservice**, and **React 18 + Vite**. Inspired by research on decentralized product anti-counterfeiting using QR code integration and distributed ledgers.
+> A production-grade enterprise software platform for tracking physical products throughout their complete supply chain lifecycle — from customer order creation, physical unit assignment, and unique QR printing through packaging, quality control, dispatch, transit hubs, and final delivery.
 
-🌐 **Live Vercel Production Deployment**: [https://verify-x-tawny.vercel.app](https://verify-x-tawny.vercel.app)
-
----
-
-## 1. Problem Statement
-
-Product counterfeiting is a multi-billion-dollar global crisis affecting consumer safety, brand reputation, and economic integrity across luxury goods, electronics, pharmaceuticals, apparel, and automotive parts. Traditional physical security labels (holograms, standard barcodes, paper certificates) are vulnerable to duplication, tampering, and central database manipulation.
+🌐 **Live Production Deployment**: [https://verify-x-tawny.vercel.app](https://verify-x-tawny.vercel.app)
 
 ---
 
-## 2. Solution Overview
+## 1. Problem Statement & Core Concept
 
-**VerifyX** solves counterfeit detection through a multi-layered cryptographic approach:
+In modern global commerce, companies face massive challenges in supply chain visibility, counterfeit intrusion, box tampering, and damage tracking. Standard barcodes represent entire product lines, making it impossible to track individual physical boxes.
 
-1. **Deterministic SHA-256 Cryptographic Hashing**: When a manufacturer registers a product, important metadata (Product ID, Serial Number, Batch Number, Brand, Category) is hashed into an unalterable 64-character digital fingerprint.
-2. **Immutable Blockchain Ledger**: The SHA-256 hash, manufacturer wallet address, and registration timestamp are committed to an Ethereum smart contract (`ProductAuthenticity.sol`).
-3. **Unique QR Code Integration**: Each physical item receives a unique QR code encoding a direct public verification route (`/verify/{productId}`).
-4. **AI Image Forensic Analysis**: Submits product label images to detect digital modifications, pixel anomalies, and compression tampering.
-5. **Instant Multi-Method Public Verification**: Customers scan the QR code or enter the Product ID / Serial Number without needing to log in. The system compares the stored MongoDB state against the on-chain smart contract state, returning a visual **✓ AUTHENTIC PRODUCT** or **⚠ PRODUCT COULD NOT BE AUTHENTICATED** alert.
+**VerifyX** enforces an individual item tracking model:
+$$\text{ONE PHYSICAL ITEM} \rightarrow \text{ONE UNIQUE PRODUCT ID} \rightarrow \text{ONE UNIQUE QR} \rightarrow \text{STRICT LIFECYCLE AUDIT TRAIL}$$
 
----
-
-## 3. Architecture
-
+### 8-Stage Strict Lifecycle Progression
 ```
- ┌─────────────────────────────────────────────────────────────┐
- │                     React 18 + Vite Client                  │
- │ (Tailwind CSS, Lucide Icons, Recharts, Ethers.js, HTML5-QR) │
- └──────────────┬───────────────────────────────┬──────────────┘
-                │ REST API Calls                │ Web3 / RPC Calls
-                ▼                               ▼
- ┌─────────────────────────────┐   ┌─────────────────────────────┐
- │  Vercel Serverless / Express│   │  Ethereum Smart Contract    │
- │ (JWT, Multer, SHA-256, CORS)│   │  ProductAuthenticity.sol    │
- └──────────────┬──────────────┘   └─────────────────────────────┘
-                │ Mongoose ODM
-                ▼
- ┌─────────────────────────────┐
- │  MongoDB Atlas Cloud DB     │
- └─────────────────────────────┘
+[1] ORDER_RECEIVED ➔ [2] PRODUCT_ASSIGNED ➔ [3] QR_GENERATED ➔ [4] PACKED
+        ▲
+        └────── ➔ [5] QUALITY_CHECK ➔ [6] DISPATCHED ➔ [7] IN_TRANSIT ➔ [8] DELIVERED
 ```
-
-- **Off-Chain Storage**: Full product metadata, brand information, batch histories, high-resolution product images, and customer scan activity logs are stored in MongoDB.
-- **On-Chain Storage**: Lightweight cryptographic data (Product ID, SHA-256 Hash, Manufacturer Address, Current Owner, Registration Timestamp, Active Status) is stored on-chain to minimize gas fees.
+*Note: Random stage jumps are strictly prevented by the system.*
 
 ---
 
-## 4. Key Features & User Roles
+## 2. Key Modules & Features
 
-### 🏢 Manufacturer Role
-- **Account Registration & Authentication**: Secure sign up and login with bcrypt password hashing and JWT.
-- **Product Registration**: Upload product image, input serial numbers and batch details, compute SHA-256 hash.
-- **Blockchain Smart Contract Minting**: Connect MetaMask wallet to sign on-chain transaction registering product identity on Ethereum.
-- **QR Code Label Generation**: Automatically generate downloadable PNG and printable QR code labels.
-- **Operations Dashboard**: View total products, authentic items, active market status, recalled products, and interactive Recharts analytics.
-- **Ownership Transfer & Recall**: Transfer product ownership to a new wallet or deactivate/recall suspicious items.
+### 🏢 Company Operational Dashboard (`/dashboard`)
+- **Real-Time Database Statistics**: Tracks total sales orders, processing items, packed boxes, dispatches, in-transit hub scans, deliveries, and reported damage issues.
+- **Audit Streams**: Live stream of recent employee scan events and customer order activities.
 
-### 👤 Customer Role (Public / No Login Required)
-- **Instant QR Camera Scanner**: Live camera viewfinder or image upload option to scan physical product labels.
-- **Manual Product Lookup**: Query by Product ID or Serial Number.
-- **Verification Screen**:
-  - **✓ AUTHENTIC PRODUCT**: Displays green glowing shield, 100% hash match indicator, manufacturer identity, serial specs, scan count, and Etherscan transaction link.
-  - **Authenticity Score Meter**: Minimal 0-100% score component communicating verification confidence.
-  - **Dedicated Blockchain Card**: Shows status, transaction hash, and SHA-256 digital signature with one-click copy buttons.
-  - **Dedicated AI Forensic Analysis Card**: Displays modification risk percentage, confidence level, and image similarity gauges.
-  - **Verification Evidence Checklist**: Displays real-time validation checks (`✓ Blockchain record matched`, `✓ SHA-256 hash verified`, `✓ Timestamp validated`, `✓ AI analysis completed`).
-  - **⚠ NOT AUTHENTIC**: Displays red warning banner, failure analysis (hash mismatch, unregistered serial, recalled status), and consumer anti-counterfeit guidance.
-- **Lifecycle Timeline**: View vertical timeline showing product registration, on-chain contract timestamp, ownership transfers, and verification history.
+### 📦 Customer Order & Product Assignment (`/orders`, `/orders/:id`, `/orders/create`)
+- **Order Creation**: Create customer sales orders with contact, delivery address, product model, and expected delivery date.
+- **Physical Product Assignment**: Assign an individual physical unit (e.g. `Samsung Galaxy S21 FE`, Product ID: `VX-S21FE-000123`, Serial No: `SN-S21FE-928374`) to an order.
+- **Unique QR Code Generation**: Automatically generates a unique QR code encoding the direct public verification URL (`/verify/VX-S21FE-000123`).
 
-### 🛡️ Admin Security Role
-- **Governance Dashboard**: Monitor total system users, registered products, verification attempts, and suspicious alerts.
-- **User Management**: Search, filter, and toggle active/inactive account status.
-- **Suspicious Activity Monitoring**: Review failed verification attempts, flagged products, and deactivate fraudulent registrations.
+### 📱 Employee Mobile QR Scanner (`/scan`)
+- **Camera & Manual Scanner**: Scan product QR codes using mobile camera or enter Product ID manually.
+- **Stage Action Checkpoint**: Displays current stage, next allowed stage button (e.g., "Confirm Packaging & Seal", "Complete Quality Check", "Dispatch to Logistics", "Confirm Delivery").
+- **Condition Checklist**: Select package condition (*Good/Damaged*), seal condition (*Intact/Broken*), accessories check (*Complete/Missing*), report damage details, or request item replacement.
 
----
+### 🛡️ Quality Control Workbench (`/quality-check`)
+- Inspect packed products prior to dispatch, verify serial numbers and security seals, and record PASS or FAIL quality inspection logs.
 
-## 5. Technology Stack
+### 🚚 Logistics & Shipment Tracking (`/shipments`)
+- Active tracking hub for dispatches, courier tracking numbers (`TRK-VX-889021`), and regional transport hub scan checkpoints.
 
-- **Frontend**: React 18, Vite, Tailwind CSS, Lucide React, Recharts, Ethers.js, HTML5-QRCode, QRCode generator.
-- **Backend**: Node.js, Express.js, Vercel Serverless Functions, JWT, bcryptjs, Multer, Crypto (SHA-256).
-- **Database**: MongoDB Atlas & Mongoose.
-- **Blockchain**: Solidity 0.8.24, Hardhat, Ethers.js, MetaMask Web3 provider.
-- **AI Service**: Python FastAPI / Flask image forgery analysis microservice.
+### 🚨 Damage & Issue Management (`/issues`)
+- Log reported box damages, broken seals, missing items, or replacement requests (`OPEN`, `UNDER_REVIEW`, `RESOLVED`). Damages and authenticity remain separate concepts to prevent false counterfeit alerts.
+
+### 📜 Global Audit Trail (`/history`)
+- Complete searchable history log of every employee scan event across all physical products in the enterprise system.
+
+### 🔍 Public Customer Verification & Journey (`/verify/:productId` & `/track/:productId`)
+- Public page accessible **without an account** showing:
+  - **✓ AUTHENTIC PRODUCT VERIFIED**: Visual indicator with cryptographic SHA-256 hash validation match.
+  - **Product Specifications**: Manufacturer, Model, Serial Number, Order ID, and Current Stage.
+  - **Clean Product Journey Timeline**: Displays public stages (`Order Received` ➔ `Packed` ➔ `Quality Checked` ➔ `Dispatched` ➔ `In Transit` ➔ `Delivered`) while sanitizing internal employee PII and customer addresses.
 
 ---
 
-## 6. Smart Contract Details (`ProductAuthenticity.sol`)
+## 3. Technology Stack
 
-```solidity
-struct ProductRecord {
-    string productId;
-    string productHash;
-    address manufacturer;
-    address currentOwner;
-    uint256 registrationTimestamp;
-    bool isActive;
-    bool exists;
-}
-```
-
-Key Contract Functions:
-- `registerProduct(string productId, string productHash)`: Registers a new product identity on-chain.
-- `verifyProduct(string productId)`: View function returning product existence, stored SHA-256 hash, owner address, timestamp, and active status.
-- `transferOwnership(string productId, address newOwner)`: Allows current product owner or admin to transfer ownership on-chain.
-- `deactivateProduct(string productId)`: Marks product as inactive/recalled.
+- **Frontend**: React 18, Vite, Vanilla CSS + Tailwind CSS, Lucide Icons, Ethers.js, HTML5-QRCode, QRCode generator.
+- **Backend**: Node.js, Express.js REST API, Vercel Serverless Functions, JWT, bcryptjs, Multer, Crypto (SHA-256).
+- **Database**: MongoDB Atlas & Mongoose ODM.
+- **Blockchain Layer**: Solidity 0.8.24, Hardhat, Ethers.js (Ethereum-compatible audit fingerprinting).
 
 ---
 
-## 7. Installation & Quick Start Guide
+## 4. Role-Based Demo Logins
+
+| Role | Email | Password | Access Rights |
+| :--- | :--- | :--- | :--- |
+| **System Admin** | `admin@verimark.io` | `password123` | Full enterprise control & user management |
+| **Warehouse Operator** | `warehouse@verimark.io` | `password123` | Product assignment, QR printing & packaging scans |
+| **QC Inspector** | `qc@verimark.io` | `password123` | Quality checks, seal inspection & damage logging |
+| **Logistics Manager** | `logistics@verimark.io` | `password123` | Dispatches, courier tracking & transit hub updates |
+| **Delivery Agent** | `delivery@verimark.io` | `password123` | Final delivery confirmation scans |
+| **Customer** | `customer@gmail.com` | `password123` | Order tracking & product verification |
+
+---
+
+## 5. Quick Start Guide
 
 ### Prerequisites
 - Node.js (v18+ recommended)
-- MongoDB running locally on `mongodb://127.0.0.1:27017` or MongoDB Atlas URI
-- Git
+- MongoDB instance (Local or MongoDB Atlas)
 
 ### 1. Clone & Install Dependencies
 ```bash
@@ -134,71 +104,33 @@ NODE_ENV=development
 CLIENT_URL=http://localhost:5173
 MONGO_URI=mongodb://127.0.0.1:27017/verimark
 JWT_SECRET=verimark_jwt_secret_key_2026_secure_hash_authentication
-BLOCKCHAIN_RPC_URL=http://127.0.0.1:8545
-CONTRACT_ADDRESS=0x5FbDB2315678afecb367f032d93F642f64180aa3
 ```
 
-### 3. Compile & Deploy Smart Contracts
-```bash
-# Compile Solidity contracts & run Hardhat tests
-npm run hardhat:test
-
-# Deploy contract locally
-npm run hardhat:deploy
-```
-
-### 4. Seed Realistic Demo Data
+### 3. Seed Enterprise Supply Chain Demo Data
 ```bash
 npm run seed
 ```
 
-### 5. Launch Application
+### 4. Run Application
 ```bash
-# Terminal 1: Backend Server (Port 5000)
+# Terminal 1: Backend API (Port 5000)
 npm run server
 
 # Terminal 2: Frontend Client (Port 5173)
 npm run client
-
-# Terminal 3 (Optional): Local Hardhat Blockchain Node (Port 8545)
-npm run hardhat:node
 ```
 
-Access the app locally at: `http://localhost:5173`
+Access locally at `http://localhost:5173`.
 
 ---
 
-## 8. Deployment to Vercel
+## 6. Live Deployment
 
-The application is fully configured for Vercel Monorepo deployment with Serverless API routing (`vercel.json` + `api/index.js`).
-
-### Deploy via Vercel CLI
-```bash
-npm run vercel-build
-npx vercel --prod
-```
-
-### Production URL
+The system is deployed and active on Vercel Production:
 👉 **[https://verify-x-tawny.vercel.app](https://verify-x-tawny.vercel.app)**
 
 ---
 
-## 9. Testing
-
-### Run Smart Contract Hardhat Tests
-```bash
-cd blockchain
-npx hardhat test
-```
-
-### Run Server Unit Tests
-```bash
-cd server
-npm test
-```
-
----
-
-## 10. License
+## 7. License
 
 Distributed under the MIT License. See `LICENSE` for more information.
