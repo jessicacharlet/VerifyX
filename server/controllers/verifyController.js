@@ -1,13 +1,14 @@
 const mongoose = require("mongoose");
 const Product = require("../models/Product");
 const Verification = require("../models/Verification");
+const ScanEvent = require("../models/ScanEvent");
 const { generateProductHash } = require("../utils/hashGenerator");
 const { verifyOnBlockchain } = require("../services/blockchainService");
 const { analyzeProductImage } = require("../services/aiService");
 const crypto = require("crypto");
 const path = require("path");
 
-// @desc    Public endpoint to verify product authenticity with AI forgery analysis
+// @desc    Public endpoint to verify product authenticity with AI forgery analysis & lifecycle timeline
 // @route   POST /api/verify
 // @access  Public
 const verifyProduct = async (req, res) => {
@@ -28,9 +29,8 @@ const verifyProduct = async (req, res) => {
       queryId = decodeURIComponent(queryId);
     } catch (e) {}
 
-    if (queryId.includes("/verify/")) {
-      queryId = queryId.split("/verify/")[1].split("?")[0];
-    }
+    if (queryId.includes("/verify/")) queryId = queryId.split("/verify/")[1].split("?")[0];
+    if (queryId.includes("/track/")) queryId = queryId.split("/track/")[1].split("?")[0];
 
     queryId = queryId.replace(/\/+$/, "").trim().toUpperCase();
 
@@ -194,7 +194,17 @@ const verifyProduct = async (req, res) => {
       console.warn("Verification log creation skipped:", logErr.message);
     }
 
-    // 5. Calculate total verification count
+    // 5. Fetch Lifecycle Scan Events for Public Journey Timeline
+    let scans = [];
+    try {
+      scans = await ScanEvent.find({ productId: product.productId })
+        .sort({ timestamp: 1 })
+        .select("-employeeId -employeeName"); // Sanitize PII for public view
+    } catch (scanErr) {
+      scans = [];
+    }
+
+    // 6. Calculate total verification count
     let totalVerifications = 1;
     try {
       totalVerifications = await Verification.countDocuments({ productId: product.productId });
@@ -209,6 +219,7 @@ const verifyProduct = async (req, res) => {
       message: "✓ Authentic Product Verified on Ethereum Blockchain",
       verificationId,
       product,
+      scans,
       hashMatch: true,
       computedHash: recomputedHash,
       storedHash: product.productHash,

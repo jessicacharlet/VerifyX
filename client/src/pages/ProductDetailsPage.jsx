@@ -1,258 +1,269 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import API from "../services/api";
-import Timeline from "../components/Timeline";
 import {
-  ShieldCheck,
   Package,
   QrCode,
-  Lock,
-  ArrowLeft,
+  ShieldCheck,
+  MapPin,
+  Clock,
   CheckCircle,
-  ExternalLink,
+  AlertTriangle,
+  FileText,
   Printer,
-  Download,
-  Cpu,
-  BrainCircuit,
-  Copy,
+  ExternalLink,
+  ArrowRight,
+  ShieldAlert,
 } from "lucide-react";
+import API from "../services/api";
+
+const STAGES = [
+  "ORDER_RECEIVED",
+  "PRODUCT_ASSIGNED",
+  "QR_GENERATED",
+  "PACKED",
+  "QUALITY_CHECK",
+  "DISPATCHED",
+  "IN_TRANSIT",
+  "DELIVERED",
+];
 
 export default function ProductDetailsPage() {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
-  const [history, setHistory] = useState([]);
+  const [scans, setScans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchDetails = async () => {
-      try {
-        setLoading(true);
-        const res = await API.get(`/products/${id}`);
-        if (res.data.success) {
-          setProduct(res.data.product);
-
-          const histRes = await API.get(`/products/${res.data.product.productId}/history`);
-          if (histRes.data.success) {
-            setHistory(histRes.data.verifications || []);
-          }
-        }
-      } catch (err) {
-        console.error("Fetch Product Details Error:", err);
-        setError("Product record not found.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (id) fetchDetails();
+    fetchProductDetails();
   }, [id]);
 
+  const fetchProductDetails = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const res = await API.get(`/products/${encodeURIComponent(id)}`);
+      if (res.data && res.data.product) {
+        setProduct(res.data.product);
+
+        // Fetch scan history
+        try {
+          const scanRes = await API.get(`/scans/products/${res.data.product.productId}/scans`);
+          if (scanRes.data && scanRes.data.scans) {
+            setScans(scanRes.data.scans);
+          }
+        } catch (sErr) {
+          console.warn("Scan history fetch error:", sErr);
+        }
+      }
+    } catch (err) {
+      console.error("Fetch product error:", err);
+      setError("Failed to load product details.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading) {
-    return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-3 bg-[#070A0F]">
-        <div className="w-8 h-8 border-3 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-xs font-mono text-[#8B97A7]">Loading product record...</p>
-      </div>
-    );
+    return <div className="p-12 text-center text-xs font-mono text-[#94A3B8]">Loading product details...</div>;
   }
 
   if (error || !product) {
     return (
-      <div className="max-w-xl mx-auto px-4 py-16 text-center space-y-4 bg-[#070A0F]">
-        <h2 className="text-xl font-bold text-white">Product record not found</h2>
-        <Link to="/products" className="inline-flex items-center space-x-2 text-cyan-400 text-xs font-mono font-bold hover:underline">
-          <ArrowLeft className="w-4 h-4" />
-          <span>Return to catalog</span>
+      <div className="max-w-3xl mx-auto px-4 py-12 text-center space-y-4 font-mono">
+        <AlertTriangle className="w-10 h-10 text-red-400 mx-auto" />
+        <div className="text-base font-bold text-white">Product Not Found</div>
+        <p className="text-xs text-[#94A3B8]">{error || `Product '${id}' does not exist.`}</p>
+        <Link to="/products" className="inline-block px-4 py-2 bg-[#111821] text-cyan-400 rounded border border-[#1E293B] text-xs">
+          Back to Products List
         </Link>
       </div>
     );
   }
 
-  const latestScan = history.length > 0 ? history[0] : null;
-  const aiStats = latestScan || {
-    aiRiskScore: 12,
-    aiAuthenticityScore: 88,
-    aiConfidence: 91,
-    aiResult: "LOW_RISK",
-    visualConsistency: 92,
-    imageSimilarity: 95,
-    detectedModifications: [],
-  };
+  const currentStageIndex = STAGES.indexOf(product.currentStage);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 space-y-6 bg-[#070A0F]">
-      {/* Navigation Header */}
-      <div className="flex items-center justify-between border-b border-[#202A36] pb-3 text-xs font-mono">
-        <Link to="/products" className="inline-flex items-center space-x-1.5 text-[#8B97A7] hover:text-white">
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Back to catalog</span>
-        </Link>
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 font-mono">
+      {/* Header Banner */}
+      <div className="bg-[#0D121A] p-6 rounded-xl border border-[#1E293B] shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center space-x-2">
+            <span className="text-2xl font-bold text-white">{product.productName}</span>
+            <span className="px-3 py-1 rounded text-xs font-bold bg-cyan-950 text-cyan-300 border border-cyan-500/30">
+              {product.currentStage}
+            </span>
+          </div>
+          <div className="text-xs text-[#94A3B8]">
+            Product ID: <strong className="text-cyan-400">{product.productId}</strong> • Serial: {product.serialNumber} • Order: {product.orderId || "N/A"}
+          </div>
+        </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-wrap gap-2">
           <Link
             to={`/products/${product.productId}/qr`}
-            className="px-3 py-1.5 rounded bg-[#0D121A] text-slate-200 border border-[#202A36] font-medium flex items-center space-x-1.5"
+            className="px-4 py-2.5 rounded-lg bg-cyan-400 hover:bg-cyan-300 text-[#070A0F] font-bold text-xs flex items-center space-x-2 transition-all shadow-md shadow-cyan-500/20"
           >
-            <QrCode className="w-3.5 h-3.5 text-cyan-400" />
-            <span>QR label</span>
+            <Printer className="w-4 h-4" />
+            <span>Print Box QR</span>
           </Link>
+
           <Link
-            to={`/verify/${product.productId}`}
-            className="px-3.5 py-1.5 rounded bg-[#06b6d4] text-[#070A0F] font-bold flex items-center space-x-1.5"
+            to={`/scan?id=${product.productId}`}
+            className="px-4 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-[#070A0F] font-bold text-xs flex items-center space-x-2 transition-all shadow-md shadow-emerald-500/20"
           >
-            <CheckCircle className="w-3.5 h-3.5" />
-            <span>Verify authenticity</span>
+            <QrCode className="w-4 h-4" />
+            <span>Scan Checkpoint</span>
           </Link>
         </div>
       </div>
 
-      {/* Top Banner */}
-      <div className="bg-[#0D121A] p-5 rounded-lg border border-[#202A36] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <span className="text-[10px] font-mono text-cyan-400 uppercase font-bold">{product.category}</span>
-          <h1 className="text-2xl font-bold text-white tracking-tight">{product.productName}</h1>
-          <p className="text-xs text-[#8B97A7]">Product ID: <strong className="text-cyan-400 font-mono">{product.productId}</strong></p>
+      {/* Main Grid Specs & Condition */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Specs Card */}
+        <div className="lg:col-span-8 bg-[#0D121A] p-6 rounded-xl border border-[#1E293B] space-y-4 shadow-xl">
+          <h3 className="text-sm font-bold text-white border-b border-[#1E293B] pb-3 flex items-center space-x-2">
+            <Package className="w-4 h-4 text-cyan-400" />
+            <span>Physical Product Specifications</span>
+          </h3>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div className="p-3 rounded bg-[#111821] border border-[#1E293B]">
+              <span className="text-[#94A3B8] block text-[10px]">Brand & Category</span>
+              <span className="text-white font-bold">{product.brandName} • {product.category}</span>
+            </div>
+
+            <div className="p-3 rounded bg-[#111821] border border-[#1E293B]">
+              <span className="text-[#94A3B8] block text-[10px]">Batch Number</span>
+              <span className="text-white font-bold">{product.batchNumber}</span>
+            </div>
+
+            <div className="p-3 rounded bg-[#111821] border border-[#1E293B]">
+              <span className="text-[#94A3B8] block text-[10px]">Warehouse Location</span>
+              <span className="text-cyan-300 font-bold">{product.warehouse}</span>
+            </div>
+
+            <div className="p-3 rounded bg-[#111821] border border-[#1E293B]">
+              <span className="text-[#94A3B8] block text-[10px]">Current Location</span>
+              <span className="text-cyan-300 font-bold">{product.currentLocation}</span>
+            </div>
+          </div>
         </div>
 
-        <span className="px-3 py-1 rounded bg-emerald-950/60 text-emerald-400 border border-emerald-500/30 text-xs font-mono font-bold self-start sm:self-auto">
-          ✓ {product.status}
-        </span>
+        {/* Condition Card */}
+        <div className="lg:col-span-4 bg-[#0D121A] p-6 rounded-xl border border-[#1E293B] space-y-4 shadow-xl">
+          <h3 className="text-sm font-bold text-white border-b border-[#1E293B] pb-3 flex items-center space-x-2">
+            <CheckCircle className="w-4 h-4 text-emerald-400" />
+            <span>Product Condition & Status</span>
+          </h3>
+
+          <div className="space-y-3 text-xs">
+            <div className="p-3 rounded bg-[#111821] border border-[#1E293B] flex justify-between">
+              <span className="text-[#94A3B8]">Box Condition:</span>
+              <span className={product.condition === "DAMAGED" ? "text-red-400 font-bold" : "text-emerald-400 font-bold"}>
+                {product.condition}
+              </span>
+            </div>
+
+            <div className="p-3 rounded bg-[#111821] border border-[#1E293B] flex justify-between">
+              <span className="text-[#94A3B8]">Damage Reported:</span>
+              <span className={product.damageDetected ? "text-red-400 font-bold" : "text-slate-300"}>
+                {product.damageDetected ? "YES" : "NO"}
+              </span>
+            </div>
+
+            <div className="p-3 rounded bg-[#111821] border border-[#1E293B] flex justify-between">
+              <span className="text-[#94A3B8]">Replacement Status:</span>
+              <span className={product.replacementRequired ? "text-amber-400 font-bold" : "text-slate-300"}>
+                {product.replacementRequired ? "REQUIRED" : "NONE"}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-        {/* Left Column: Image & QR */}
-        <div className="md:col-span-5 space-y-6">
-          <div className="bg-[#0D121A] p-4 rounded-lg border border-[#202A36] space-y-3">
-            <img
-              src={product.productImage || "https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=600&auto=format&fit=crop&q=80"}
-              alt={product.productName}
-              className="w-full h-56 object-cover rounded border border-[#202A36]"
-            />
-            <div className="space-y-1 text-xs">
-              <span className="text-[#8B97A7] block">Brand: <strong className="text-white">{product.brandName}</strong></span>
-              {product.description && <p className="text-slate-300 pt-2 border-t border-[#202A36] leading-relaxed text-[11px]">{product.description}</p>}
-            </div>
-          </div>
+      {/* Chronological 8-Stage Lifecycle Timeline */}
+      <div className="bg-[#0D121A] p-6 rounded-xl border border-[#1E293B] space-y-6 shadow-xl">
+        <h3 className="text-sm font-bold text-white border-b border-[#1E293B] pb-3 flex items-center space-x-2">
+          <Clock className="w-4 h-4 text-cyan-400" />
+          <span>Product Lifecycle Progression Timeline</span>
+        </h3>
 
-          {/* QR Code */}
-          {product.qrCode && (
-            <div className="bg-[#0D121A] p-5 rounded-lg border border-[#202A36] text-center space-y-3">
-              <span className="text-xs font-mono font-bold text-slate-200 uppercase tracking-wider block">Cryptographic QR code</span>
-              <img src={product.qrCode} alt="QR Code" className="w-32 h-32 bg-white p-2 rounded mx-auto border border-slate-700" />
-              <div className="flex items-center justify-center space-x-2 pt-1">
-                <a
-                  href={product.qrCode}
-                  download={`QR-${product.productId}.png`}
-                  className="px-3 py-1.5 rounded bg-[#06b6d4] text-[#070A0F] text-xs font-bold inline-flex items-center space-x-1"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Download</span>
-                </a>
-                <button
-                  onClick={() => window.print()}
-                  className="px-3 py-1.5 rounded bg-[#111821] text-slate-200 text-xs font-bold inline-flex items-center space-x-1 border border-[#202A36]"
-                >
-                  <Printer className="w-3.5 h-3.5" />
-                  <span>Print</span>
-                </button>
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 text-xs">
+          {STAGES.map((st, idx) => {
+            const isCompleted = idx <= currentStageIndex;
+            const isCurrent = st === product.currentStage;
+
+            return (
+              <div
+                key={st}
+                className={`p-3 rounded-lg border text-center space-y-1.5 transition-all ${
+                  isCurrent
+                    ? "bg-cyan-950/80 border-cyan-400 text-white font-bold shadow-lg shadow-cyan-500/20"
+                    : isCompleted
+                    ? "bg-[#111821] border-emerald-500/40 text-emerald-300"
+                    : "bg-[#0A0E17] border-[#1E293B] text-slate-500"
+                }`}
+              >
+                <div className="text-[10px] font-mono text-[#64748B]">0{idx + 1}</div>
+                <div className="text-[11px] leading-tight font-semibold uppercase">{st.replace(/_/g, " ")}</div>
+                {isCompleted && (
+                  <CheckCircle className={`w-3.5 h-3.5 mx-auto ${isCurrent ? 'text-cyan-400' : 'text-emerald-400'}`} />
+                )}
               </div>
-            </div>
-          )}
+            );
+          })}
         </div>
+      </div>
 
-        {/* Right Column: Specs, Authenticity, Blockchain, Image Analysis, Timeline */}
-        <div className="md:col-span-7 space-y-6">
-          {/* SECTION 1: PRODUCT INFORMATION */}
-          <div className="bg-[#0D121A] p-5 rounded-lg border border-[#202A36] space-y-3 font-mono text-xs">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider border-b border-[#202A36] pb-2 flex items-center space-x-2">
-              <Package className="w-4 h-4 text-cyan-400" />
-              <span>Product information</span>
-            </h3>
+      {/* Scan History Log Table */}
+      <div className="bg-[#0D121A] p-6 rounded-xl border border-[#1E293B] space-y-4 shadow-xl">
+        <h3 className="text-sm font-bold text-white border-b border-[#1E293B] pb-3 flex items-center space-x-2">
+          <FileText className="w-4 h-4 text-cyan-400" />
+          <span>Scan Audit Trail History ({scans.length} events)</span>
+        </h3>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <span className="text-[#8B97A7] block text-[10px]">Serial number</span>
-                <span className="font-bold text-white text-xs">{product.serialNumber}</span>
-              </div>
-              <div>
-                <span className="text-[#8B97A7] block text-[10px]">Batch number</span>
-                <span className="text-slate-200">{product.batchNumber}</span>
-              </div>
-              <div>
-                <span className="text-[#8B97A7] block text-[10px]">Manufacturing date</span>
-                <span className="text-slate-200">{new Date(product.manufacturingDate).toLocaleDateString()}</span>
-              </div>
-              <div>
-                <span className="text-[#8B97A7] block text-[10px]">Manufacturer</span>
-                <span className="text-cyan-400 font-bold">{product.manufacturer?.companyName || product.manufacturer?.name || "Enterprise"}</span>
-              </div>
-            </div>
+        {scans.length === 0 ? (
+          <div className="p-6 text-center text-xs text-[#94A3B8]">No scan events recorded yet for this product.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-[#111821] text-[#94A3B8] uppercase border-b border-[#1E293B]">
+                <tr>
+                  <th className="px-4 py-3">Date & Time</th>
+                  <th className="px-4 py-3">Stage</th>
+                  <th className="px-4 py-3">Location</th>
+                  <th className="px-4 py-3">Employee</th>
+                  <th className="px-4 py-3">Condition</th>
+                  <th className="px-4 py-3">Remarks</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#1E293B] text-slate-200">
+                {scans.map((s) => (
+                  <tr key={s._id} className="hover:bg-[#111821]/60">
+                    <td className="px-4 py-3 text-[#94A3B8]">{new Date(s.timestamp || s.createdAt).toLocaleString()}</td>
+                    <td className="px-4 py-3 font-bold text-cyan-400">{s.stage}</td>
+                    <td className="px-4 py-3 text-cyan-300 font-semibold">{s.location}</td>
+                    <td className="px-4 py-3">{s.employeeName}</td>
+                    <td className="px-4 py-3 font-bold text-emerald-400">{s.condition}</td>
+                    <td className="px-4 py-3 text-[#94A3B8]">{s.remarks || "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
+        )}
+      </div>
 
-          {/* SECTION 2: AUTHENTICITY */}
-          <div className="bg-[#0D121A] p-5 rounded-lg border border-[#202A36] space-y-2 font-mono text-xs">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider border-b border-[#202A36] pb-2 flex items-center space-x-2">
-              <Lock className="w-4 h-4 text-emerald-400" />
-              <span>Authenticity signature</span>
-            </h3>
-            <span className="text-[#8B97A7] text-[10px] block">SHA-256 digital signature</span>
-            <div className="bg-[#111821] p-3 rounded border border-[#202A36] text-cyan-300 break-all text-[11px]">
-              {product.productHash}
-            </div>
-          </div>
-
-          {/* SECTION 3: BLOCKCHAIN RECORD */}
-          <div className="bg-[#0D121A] p-5 rounded-lg border border-[#202A36] space-y-3 font-mono text-xs">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider border-b border-[#202A36] pb-2 flex items-center space-x-2">
-              <Cpu className="w-4 h-4 text-cyan-400" />
-              <span>Blockchain record</span>
-            </h3>
-            <div className="space-y-2">
-              <div>
-                <span className="text-[#8B97A7] block text-[10px]">Transaction hash</span>
-                <div className="bg-[#111821] p-2.5 rounded border border-[#202A36] text-cyan-400 break-all text-[11px]">
-                  {product.transactionHash || "0x7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069"}
-                </div>
-              </div>
-              <div>
-                <span className="text-[#8B97A7] block text-[10px]">Wallet address</span>
-                <div className="bg-[#111821] p-2.5 rounded border border-[#202A36] text-slate-300 break-all text-[11px]">
-                  {product.ownerWallet || "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION 4: IMAGE ANALYSIS */}
-          <div className="bg-[#0D121A] p-5 rounded-lg border border-[#202A36] space-y-3 font-mono text-xs">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider border-b border-[#202A36] pb-2 flex items-center space-x-2">
-              <BrainCircuit className="w-4 h-4 text-cyan-400" />
-              <span>Image analysis</span>
-            </h3>
-            <div className="grid grid-cols-3 gap-3 text-center">
-              <div className="bg-[#111821] p-2.5 rounded border border-[#202A36]">
-                <span className="text-[#8B97A7] text-[10px] block">Risk score</span>
-                <span className="text-emerald-400 font-bold text-sm">{aiStats.aiRiskScore}%</span>
-              </div>
-              <div className="bg-[#111821] p-2.5 rounded border border-[#202A36]">
-                <span className="text-[#8B97A7] text-[10px] block">Confidence</span>
-                <span className="text-blue-400 font-bold text-sm">{aiStats.aiConfidence}%</span>
-              </div>
-              <div className="bg-[#111821] p-2.5 rounded border border-[#202A36]">
-                <span className="text-[#8B97A7] text-[10px] block">Registered match</span>
-                <span className="text-cyan-400 font-bold text-sm">{aiStats.imageSimilarity}%</span>
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION 5: VERIFICATION HISTORY */}
-          <div className="bg-[#0D121A] p-5 rounded-lg border border-[#202A36] space-y-3 font-mono text-xs">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider border-b border-[#202A36] pb-2">
-              Verification history ({history.length} scans)
-            </h3>
-            <Timeline product={product} verifications={history} />
-          </div>
+      {/* Blockchain Proof Footer */}
+      <div className="bg-[#0D121A] p-5 rounded-xl border border-cyan-500/30 space-y-2 text-xs">
+        <div className="text-white font-bold flex items-center space-x-2">
+          <ShieldCheck className="w-4 h-4 text-cyan-400" />
+          <span>Cryptographic SHA-256 Audit Signature</span>
+        </div>
+        <div className="p-3 rounded bg-[#111821] text-cyan-300 font-mono text-[11px] break-all border border-[#1E293B]">
+          {product.productHash}
         </div>
       </div>
     </div>

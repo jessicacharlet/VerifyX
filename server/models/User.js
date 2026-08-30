@@ -23,7 +23,15 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["manufacturer", "customer", "admin"],
+      enum: [
+        "admin",
+        "manufacturer",
+        "warehouse",
+        "quality_control",
+        "logistics",
+        "delivery",
+        "customer",
+      ],
       default: "manufacturer",
     },
     walletAddress: {
@@ -40,6 +48,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true,
       default: "",
+    },
+    location: {
+      type: String,
+      trim: true,
+      default: "Central Warehouse",
     },
     isActive: {
       type: Boolean,

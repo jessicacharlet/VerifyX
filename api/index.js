@@ -9,6 +9,10 @@ const productRoutes = require("../server/routes/productRoutes");
 const verifyRoutes = require("../server/routes/verifyRoutes");
 const adminRoutes = require("../server/routes/adminRoutes");
 const blockchainRoutes = require("../server/routes/blockchainRoutes");
+const orderRoutes = require("../server/routes/orderRoutes");
+const scanRoutes = require("../server/routes/scanRoutes");
+const issueRoutes = require("../server/routes/issueRoutes");
+const shipmentRoutes = require("../server/routes/shipmentRoutes");
 
 const app = express();
 
@@ -74,6 +78,10 @@ app.use("/api/products", productRoutes);
 app.use("/api/verify", verifyRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/blockchain", blockchainRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/scans", scanRoutes);
+app.use("/api/issues", issueRoutes);
+app.use("/api/shipments", shipmentRoutes);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {

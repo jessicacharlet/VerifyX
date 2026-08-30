@@ -9,6 +9,10 @@ const productRoutes = require("./routes/productRoutes");
 const verifyRoutes = require("./routes/verifyRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const blockchainRoutes = require("./routes/blockchainRoutes");
+const orderRoutes = require("./routes/orderRoutes");
+const scanRoutes = require("./routes/scanRoutes");
+const issueRoutes = require("./routes/issueRoutes");
+const shipmentRoutes = require("./routes/shipmentRoutes");
 
 const app = express();
 
@@ -36,12 +40,16 @@ app.use("/api/products", productRoutes);
 app.use("/api/verify", verifyRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/blockchain", blockchainRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/scans", scanRoutes);
+app.use("/api/issues", issueRoutes);
+app.use("/api/shipments", shipmentRoutes);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     status: "OK",
-    service: "VeriMark Product Authenticity API",
+    service: "VeriMark Enterprise Product Authenticity API",
     timestamp: new Date(),
     environment: process.env.NODE_ENV || "development",
     dbConnected: mongoose.connection.readyState === 1,

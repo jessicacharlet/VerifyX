@@ -9,10 +9,21 @@ const productSchema = new mongoose.Schema(
       trim: true,
       index: true,
     },
+    orderId: {
+      type: String,
+      trim: true,
+      default: "",
+      index: true,
+    },
     productName: {
       type: String,
       required: [true, "Product Name is required"],
       trim: true,
+    },
+    modelName: {
+      type: String,
+      trim: true,
+      default: "",
     },
     brandName: {
       type: String,
@@ -45,12 +56,60 @@ const productSchema = new mongoose.Schema(
       trim: true,
       index: true,
     },
+    imei: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     manufacturingDate: {
       type: Date,
       required: [true, "Manufacturing Date is required"],
     },
     expiryDate: {
       type: Date,
+    },
+    warehouse: {
+      type: String,
+      default: "Central Logistics Hub",
+    },
+    currentLocation: {
+      type: String,
+      default: "Warehouse Dispatch Bay",
+    },
+    currentStage: {
+      type: String,
+      enum: [
+        "ORDER_RECEIVED",
+        "PRODUCT_ASSIGNED",
+        "QR_GENERATED",
+        "PACKED",
+        "QUALITY_CHECK",
+        "DISPATCHED",
+        "IN_TRANSIT",
+        "DELIVERED",
+        "RETURNED",
+        "REPLACED",
+        "CANCELLED",
+      ],
+      default: "ORDER_RECEIVED",
+      index: true,
+    },
+    condition: {
+      type: String,
+      enum: ["GOOD", "DAMAGED", "UNDER_REVIEW"],
+      default: "GOOD",
+    },
+    damageDetected: {
+      type: Boolean,
+      default: false,
+    },
+    replacementRequired: {
+      type: Boolean,
+      default: false,
+    },
+    replacementFor: {
+      type: String,
+      default: "",
     },
     productImage: {
       type: String,
