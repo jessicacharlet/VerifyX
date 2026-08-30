@@ -71,15 +71,39 @@ const recordScanEvent = async (req, res) => {
     const targetStageIndex = STAGE_ORDER.indexOf(targetStage);
 
     // Enforce strict stage transition progression
-    if (
-      targetStage !== "IN_TRANSIT" &&
-      targetStageIndex !== -1 &&
-      currentStageIndex !== -1 &&
-      targetStageIndex > currentStageIndex + 1
-    ) {
+    if (targetStageIndex === -1) {
       return res.status(400).json({
         success: false,
-        message: `Invalid stage jump! Cannot transition product directly from '${product.currentStage}' to '${targetStage}'. Next required stage is '${STAGE_ORDER[currentStageIndex + 1] || targetStage}'.`,
+        message: `Invalid stage '${targetStage}'. Must be one of: ${STAGE_ORDER.join(", ")}.`,
+      });
+    }
+
+    // Rule: Cannot jump forward past the immediate next stage
+    if (currentStageIndex !== -1 && targetStageIndex > currentStageIndex + 1) {
+      // Special allowance: multiple IN_TRANSIT checkpoints after DISPATCHED or IN_TRANSIT
+      const isMultipleTransit = targetStage === "IN_TRANSIT" && (product.currentStage === "DISPATCHED" || product.currentStage === "IN_TRANSIT");
+      
+      if (!isMultipleTransit) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid stage jump! Product is currently at '${product.currentStage}'. Next required stage is '${STAGE_ORDER[currentStageIndex + 1] || targetStage}'. Cannot jump directly to '${targetStage}'.`,
+        });
+      }
+    }
+
+    // Rule: IN_TRANSIT requires DISPATCHED or prior IN_TRANSIT
+    if (targetStage === "IN_TRANSIT" && product.currentStage !== "DISPATCHED" && product.currentStage !== "IN_TRANSIT") {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid transition! Product must be in 'DISPATCHED' stage before recording 'IN_TRANSIT' checkpoints. Current stage: '${product.currentStage}'.`,
+      });
+    }
+
+    // Rule: DELIVERED requires IN_TRANSIT or DISPATCHED
+    if (targetStage === "DELIVERED" && product.currentStage !== "IN_TRANSIT" && product.currentStage !== "DISPATCHED") {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid transition! Product must be in 'IN_TRANSIT' or 'DISPATCHED' stage before confirming 'DELIVERED'. Current stage: '${product.currentStage}'.`,
       });
     }
 
@@ -151,19 +175,23 @@ const recordScanEvent = async (req, res) => {
     }
 
     if (targetStage === "DISPATCHED") {
-      const trackNo = trackingNumber || "TRK-VX-" + Math.floor(10000000 + Math.random() * 90000000);
-      await Shipment.create({
-        trackingNumber: trackNo,
-        orderId: product.orderId || "",
-        productId: product.productId,
-        courier: courier || "VerifyX Express Logistics",
-        origin: loc,
-        destination: "Customer Destination",
-        dispatchTime: new Date(),
-        estimatedDelivery: new Date(Date.now() + 48 * 60 * 60 * 1000),
-        status: "DISPATCHED",
-        currentLocation: loc,
-      });
+      const trackNo = trackingNumber || "TRK-VX-" + Math.floor(10000000 + Math.random() * 90000000) + "-" + Date.now().toString(36).toUpperCase();
+      try {
+        await Shipment.create({
+          trackingNumber: trackNo,
+          orderId: product.orderId || "",
+          productId: product.productId,
+          courier: courier || "VerifyX Express Logistics",
+          origin: loc,
+          destination: "Customer Destination",
+          dispatchTime: new Date(),
+          estimatedDelivery: new Date(Date.now() + 48 * 60 * 60 * 1000),
+          status: "DISPATCHED",
+          currentLocation: loc,
+        });
+      } catch (shpErr) {
+        console.warn("Shipment record creation warning:", shpErr.message);
+      }
     } else if (targetStage === "IN_TRANSIT") {
       const shipment = await Shipment.findOne({ productId: product.productId });
       if (shipment) {

@@ -1,6 +1,8 @@
 const { ethers } = require("ethers");
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
+const BlockchainRecord = require("../models/BlockchainRecord");
 
 let contractInstance = null;
 let providerInstance = null;
@@ -11,7 +13,6 @@ function getContract() {
   try {
     const artifactPath = path.join(__dirname, "../config/contractArtifact.json");
     if (!fs.existsSync(artifactPath)) {
-      console.warn("⚠️ Contract artifact file not found. Blockchain direct queries disabled.");
       return null;
     }
 
@@ -25,6 +26,91 @@ function getContract() {
   } catch (error) {
     console.warn("⚠️ Unable to connect to blockchain node:", error.message);
     return null;
+  }
+}
+
+/**
+ * Record a lifecycle event proof on-chain or store as NOT_CONFIGURED
+ */
+async function recordLifecycleEventOnChain(productId, stage, location, scanId = "") {
+  // Generate deterministic SHA-256 event hash
+  const timestampStr = new Date().toISOString();
+  const rawData = `${productId}|${stage}|${location}|${timestampStr}`;
+  const eventHash = "0x" + crypto.createHash("sha256").update(rawData).digest("hex");
+
+  const contract = getContract();
+  if (!contract) {
+    // Record as NOT_CONFIGURED in MongoDB
+    const dbRecord = await BlockchainRecord.create({
+      productId,
+      scanId,
+      stage,
+      eventHash,
+      transactionHash: "",
+      network: "Offline / Database Audit Only",
+      contractAddress: "",
+      status: "NOT_CONFIGURED",
+      timestamp: new Date(),
+    });
+
+    return {
+      connected: false,
+      eventHash,
+      transactionHash: "",
+      status: "NOT_CONFIGURED",
+      record: dbRecord,
+    };
+  }
+
+  try {
+    // Attempt contract call if RPC node is connected
+    const tx = await contract.recordEvent(productId, stage, eventHash);
+    const receipt = await tx.wait();
+
+    const dbRecord = await BlockchainRecord.create({
+      productId,
+      scanId,
+      stage,
+      eventHash,
+      transactionHash: receipt.hash,
+      blockNumber: receipt.blockNumber,
+      network: "Ethereum Sepolia / Hardhat Local",
+      contractAddress: contract.target || "",
+      status: "CONFIRMED",
+      timestamp: new Date(),
+    });
+
+    return {
+      connected: true,
+      eventHash,
+      transactionHash: receipt.hash,
+      blockNumber: receipt.blockNumber,
+      status: "CONFIRMED",
+      record: dbRecord,
+    };
+  } catch (err) {
+    console.warn("⚠️ Blockchain contract execution failed, recording FAILED status:", err.message);
+
+    const dbRecord = await BlockchainRecord.create({
+      productId,
+      scanId,
+      stage,
+      eventHash,
+      transactionHash: "",
+      network: "Ethereum Sepolia / Hardhat Local",
+      contractAddress: contract.target || "",
+      status: "FAILED",
+      timestamp: new Date(),
+    });
+
+    return {
+      connected: false,
+      eventHash,
+      transactionHash: "",
+      status: "FAILED",
+      error: err.message,
+      record: dbRecord,
+    };
   }
 }
 
@@ -58,5 +144,6 @@ async function verifyOnBlockchain(productId) {
 
 module.exports = {
   getContract,
+  recordLifecycleEventOnChain,
   verifyOnBlockchain,
 };

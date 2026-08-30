@@ -252,7 +252,7 @@ const assignProductToOrder = async (req, res) => {
       manufacturingDate: new Date(),
       warehouse: wh,
       currentLocation: wh,
-      currentStage: "PRODUCT_ASSIGNED",
+      currentStage: "QR_GENERATED",
       productHash,
       qrCode: qrCodeDataUrl,
       status: "AUTHENTIC",
@@ -260,10 +260,10 @@ const assignProductToOrder = async (req, res) => {
 
     // Link assigned product to order
     order.assignedProducts.push(product._id);
-    order.status = "PROCESSING";
+    order.status = "QR_GENERATED";
     await order.save();
 
-    // Create Audit Scan Events: ORDER_RECEIVED and PRODUCT_ASSIGNED
+    // Create Audit Scan Events: ORDER_RECEIVED, PRODUCT_ASSIGNED, and QR_GENERATED
     await ScanEvent.create({
       scanId: "SCAN-" + Date.now().toString(36).toUpperCase() + "-1",
       productId,
@@ -272,7 +272,7 @@ const assignProductToOrder = async (req, res) => {
       employeeName: req.user ? req.user.name : "Order Desk Operator",
       location: wh,
       remarks: `Order ${order.orderId} created for customer ${order.customerName}`,
-      timestamp: new Date(Date.now() - 5 * 60 * 1000),
+      timestamp: new Date(Date.now() - 10 * 60 * 1000),
     });
 
     await ScanEvent.create({
@@ -282,13 +282,28 @@ const assignProductToOrder = async (req, res) => {
       stage: "PRODUCT_ASSIGNED",
       employeeName: req.user ? req.user.name : "Warehouse Manager",
       location: wh,
-      remarks: `Unique Product ID ${productId} assigned & QR code generated`,
+      remarks: `Unique Physical Product ID ${productId} assigned to order`,
+      timestamp: new Date(Date.now() - 5 * 60 * 1000),
+    });
+
+    const qrScanEvent = await ScanEvent.create({
+      scanId: "SCAN-" + Date.now().toString(36).toUpperCase() + "-3",
+      productId,
+      orderId: order.orderId,
+      stage: "QR_GENERATED",
+      employeeName: req.user ? req.user.name : "System Operator",
+      location: wh,
+      remarks: `Unique QR Code generated and attached to box. Verification URL: ${verificationUrl}`,
       timestamp: new Date(),
     });
 
+    // Record on-chain audit proof for QR_GENERATED
+    const { recordLifecycleEventOnChain } = require("../services/blockchainService");
+    await recordLifecycleEventOnChain(productId, "QR_GENERATED", wh, qrScanEvent.scanId);
+
     return res.status(201).json({
       success: true,
-      message: `Product ${productId} assigned to Order ${order.orderId}. Unique QR generated.`,
+      message: `Product ${productId} assigned to Order ${order.orderId}. Unique QR generated. Stage set to QR_GENERATED.`,
       product,
       order,
     });

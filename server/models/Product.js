@@ -111,6 +111,10 @@ const productSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    replacedBy: {
+      type: String,
+      default: "",
+    },
     productImage: {
       type: String,
       default: "",

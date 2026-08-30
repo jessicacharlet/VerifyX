@@ -38,11 +38,10 @@ export default function ManufacturerDashboard() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const [ordersRes, productsRes, issuesRes, scansRes] = await Promise.all([
+      const [ordersRes, productsRes, issuesRes] = await Promise.all([
         API.get("/orders"),
         API.get("/products"),
         API.get("/issues"),
-        API.get("/scans/products/PROD-AP-9901/scans").catch(() => ({ data: { scans: [] } })),
       ]);
 
       const orders = ordersRes.data?.orders || [];
@@ -70,7 +69,7 @@ export default function ManufacturerDashboard() {
       setRecentOrders(orders.slice(0, 5));
 
       let allScans = [];
-      for (const p of products.slice(0, 5)) {
+      for (const p of products.slice(0, 10)) {
         try {
           const sRes = await API.get(`/scans/products/${p.productId}/scans`);
           if (sRes.data && sRes.data.scans) {
@@ -78,7 +77,7 @@ export default function ManufacturerDashboard() {
           }
         } catch (e) {}
       }
-      allScans.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      allScans.sort((a, b) => new Date(b.timestamp || b.createdAt) - new Date(a.timestamp || a.createdAt));
       setRecentScans(allScans.slice(0, 6));
     } catch (err) {
       console.error("Dashboard fetch error:", err);
