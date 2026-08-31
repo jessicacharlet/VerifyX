@@ -7,6 +7,8 @@ export default function CreateOrderPage() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
+    externalOrderId: "",
+    salesChannel: "E-Commerce Website",
     customerName: "",
     customerContact: "",
     customerAddress: "",
@@ -35,6 +37,8 @@ export default function CreateOrderPage() {
       setSuccess("");
 
       const payload = {
+        externalOrderId: formData.externalOrderId.trim(),
+        salesChannel: formData.salesChannel,
         customerName: formData.customerName.trim(),
         customerContact: formData.customerContact.trim(),
         customerAddress: formData.customerAddress.trim(),
@@ -48,22 +52,24 @@ export default function CreateOrderPage() {
       const res = await API.post("/orders", payload);
       if (res.data && res.data.success && res.data.order) {
         const createdOrder = res.data.order;
-        setSuccess(`✓ Order ${createdOrder.orderId} created successfully! Initial status: ${createdOrder.status}. Redirecting to Order Details...`);
+        setSuccess(
+          `✓ Incoming Order ${createdOrder.orderId} registered successfully! Redirecting to Order Details...`
+        );
         
         setTimeout(() => {
           navigate(`/orders/${createdOrder.orderId}`);
         }, 1200);
       } else {
-        setError(res.data?.message || "Failed to create order.");
+        setError(res.data?.message || "Failed to register order.");
       }
     } catch (err) {
-      console.error("Create order submit error:", err);
+      console.error("Register order submit error:", err);
       const serverErrMsg =
         err.response?.data?.error ||
         err.response?.data?.message ||
         err.message ||
-        "Failed to create order. Please check network and database connection.";
-      setError(`Failed to create order: ${serverErrMsg}`);
+        "Failed to register order. Please check network and database connection.";
+      setError(`Failed to register order: ${serverErrMsg}`);
     } finally {
       setLoading(false);
     }
@@ -76,17 +82,17 @@ export default function CreateOrderPage() {
         className="inline-flex items-center space-x-2 text-xs font-medium text-[#94A3B8] hover:text-white transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
-        <span>Back to Orders List</span>
+        <span>Back to Incoming Orders List</span>
       </Link>
 
       <div className="bg-[#0D121A] p-6 sm:p-8 rounded-xl border border-[#1E293B] shadow-xl space-y-6">
         <div className="border-b border-[#1E293B] pb-4 space-y-1">
           <h1 className="text-xl font-semibold text-white flex items-center space-x-2">
             <ShoppingBag className="w-5 h-5 text-cyan-400" />
-            <span>Create Sales Order</span>
+            <span>Register Incoming Order</span>
           </h1>
           <p className="text-xs text-[#94A3B8]">
-            Receive customer order and prepare for physical product assignment and QR generation.
+            Register an order received through your existing sales channels (e-commerce, ERP, marketplace, or sales team) to begin physical product tracking.
           </p>
         </div>
 
@@ -105,6 +111,36 @@ export default function CreateOrderPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-slate-300 block font-medium">Sales Channel *</label>
+              <select
+                name="salesChannel"
+                value={formData.salesChannel}
+                onChange={handleChange}
+                className="w-full px-3.5 py-2.5 rounded bg-[#111821] border border-[#1E293B] text-white focus:outline-none focus:border-cyan-400"
+              >
+                <option value="E-Commerce Website">E-Commerce Website</option>
+                <option value="Amazon Marketplace">Amazon Marketplace</option>
+                <option value="Retail Store / POS">Retail Store / POS</option>
+                <option value="Direct Sales Team">Direct Sales Team</option>
+                <option value="ERP / Enterprise API">ERP / Enterprise API</option>
+              </select>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-slate-300 block font-medium">External Order ID (Optional)</label>
+              <input
+                type="text"
+                name="externalOrderId"
+                value={formData.externalOrderId}
+                onChange={handleChange}
+                placeholder="e.g. AMZ-4589231 or ERP-99201"
+                className="w-full px-3.5 py-2.5 rounded bg-[#111821] border border-[#1E293B] text-white focus:outline-none focus:border-cyan-400 font-mono uppercase"
+              />
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-slate-300 block font-medium">Customer name *</label>
@@ -148,7 +184,7 @@ export default function CreateOrderPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-1 sm:col-span-2">
-              <label className="text-slate-300 block font-medium">Product name *</label>
+              <label className="text-slate-300 block font-medium">Product model name *</label>
               <input
                 type="text"
                 name="productName"
@@ -161,7 +197,7 @@ export default function CreateOrderPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-slate-300 block font-medium">Quantity</label>
+              <label className="text-slate-300 block font-medium">Quantity (Units)</label>
               <input
                 type="number"
                 name="quantity"
@@ -206,10 +242,10 @@ export default function CreateOrderPage() {
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Creating Order...</span>
+                <span>Registering Order...</span>
               </>
             ) : (
-              <span>Confirm & Create Order</span>
+              <span>Confirm & Register Order</span>
             )}
           </button>
         </form>

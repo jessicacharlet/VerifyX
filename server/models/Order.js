@@ -9,6 +9,16 @@ const orderSchema = new mongoose.Schema(
       trim: true,
       index: true,
     },
+    externalOrderId: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    salesChannel: {
+      type: String,
+      trim: true,
+      default: "Direct Sales",
+    },
     customerName: {
       type: String,
       required: [true, "Customer Name is required"],

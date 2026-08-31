@@ -99,7 +99,7 @@ export default function ManufacturerDashboard() {
             Company Operations & Product Lifecycle
           </h1>
           <p className="text-xs sm:text-sm text-[#94A3B8]">
-            Real-time tracking of order creation, QR packaging, quality control, and customer deliveries.
+            VerifyX helps companies track and verify individual products from order receipt through delivery using unique QR identification, lifecycle checkpoints, and a tamper-evident audit trail.
           </p>
         </div>
 
@@ -117,7 +117,7 @@ export default function ManufacturerDashboard() {
             className="px-4 py-2.5 rounded-lg bg-cyan-400 hover:bg-cyan-300 text-[#070A0F] font-semibold text-xs flex items-center space-x-2 transition-all shadow-md shadow-cyan-500/20"
           >
             <Plus className="w-4 h-4" />
-            <span>Create Order</span>
+            <span>Register Incoming Order</span>
           </Link>
         </div>
       </div>
@@ -125,9 +125,9 @@ export default function ManufacturerDashboard() {
       {/* Metrics Row */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 text-xs">
         <div className="bg-[#0D121A] p-4 rounded-xl border border-[#1E293B] space-y-1">
-          <span className="text-[#94A3B8] text-xs font-medium block">Total orders</span>
+          <span className="text-[#94A3B8] text-xs font-medium block">Incoming orders</span>
           <div className="text-2xl font-bold text-white">{stats.totalOrders}</div>
-          <span className="text-[11px] text-cyan-400 font-medium">Sales orders</span>
+          <span className="text-[11px] text-cyan-400 font-medium">Registered orders</span>
         </div>
 
         <div className="bg-[#0D121A] p-4 rounded-xl border border-[#1E293B] space-y-1">
@@ -174,7 +174,7 @@ export default function ManufacturerDashboard() {
           <div className="flex items-center justify-between border-b border-[#1E293B] pb-3">
             <h3 className="text-sm font-semibold text-white flex items-center space-x-2">
               <ShoppingBag className="w-4 h-4 text-cyan-400" />
-              <span>Recent sales orders</span>
+              <span>Recent incoming orders</span>
             </h3>
             <Link to="/orders" className="text-xs text-cyan-400 hover:underline font-medium">
               View all orders ➔

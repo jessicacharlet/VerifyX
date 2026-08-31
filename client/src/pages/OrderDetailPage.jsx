@@ -152,6 +152,18 @@ export default function OrderDetailPage() {
 
             <div className="space-y-3 text-xs">
               <div className="p-3 rounded bg-[#111821] border border-[#1E293B] flex justify-between">
+                <span className="text-[#94A3B8]">Sales channel:</span>
+                <span className="text-cyan-300 font-semibold">{order.salesChannel || "Direct Sales"}</span>
+              </div>
+
+              {order.externalOrderId && (
+                <div className="p-3 rounded bg-[#111821] border border-[#1E293B] flex justify-between">
+                  <span className="text-[#94A3B8]">External Order ID:</span>
+                  <span className="text-emerald-400 font-mono font-semibold">{order.externalOrderId}</span>
+                </div>
+              )}
+
+              <div className="p-3 rounded bg-[#111821] border border-[#1E293B] flex justify-between">
                 <span className="text-[#94A3B8]">Customer name:</span>
                 <span className="text-white font-semibold">{order.customerName}</span>
               </div>

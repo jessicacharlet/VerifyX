@@ -28,7 +28,7 @@ export default function OrdersPage() {
       }
     } catch (err) {
       console.error("Fetch orders error:", err);
-      setError("Failed to load customer orders.");
+      setError("Failed to load incoming orders.");
     } finally {
       setLoading(false);
     }
@@ -46,11 +46,11 @@ export default function OrdersPage() {
         <div className="space-y-1">
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-400 text-xs font-medium">
             <ShoppingBag className="w-3.5 h-3.5" />
-            <span>Order Management</span>
+            <span>Order Registration Hub</span>
           </div>
-          <h1 className="text-2xl font-semibold text-white tracking-tight">Customer Orders</h1>
+          <h1 className="text-2xl font-semibold text-white tracking-tight">Incoming Orders</h1>
           <p className="text-xs text-[#94A3B8]">
-            Manage incoming sales orders, assign physical products, and generate unique product QR codes.
+            Manage orders received from your sales channels (website, ERP, marketplace), assign physical product items, and generate QR codes.
           </p>
         </div>
 
@@ -59,7 +59,7 @@ export default function OrdersPage() {
           className="px-5 py-3 rounded-lg bg-cyan-400 hover:bg-cyan-300 text-[#070A0F] font-semibold text-xs flex items-center justify-center space-x-2 transition-all shadow-md shadow-cyan-500/20"
         >
           <Plus className="w-4 h-4" />
-          <span>Create New Order</span>
+          <span>Register Incoming Order</span>
         </Link>
       </div>
 
@@ -78,7 +78,7 @@ export default function OrdersPage() {
 
         {/* Status Filters */}
         <div className="flex flex-wrap gap-1.5 text-xs font-medium w-full md:w-auto">
-          {["ALL", "ORDER_RECEIVED", "PROCESSING", "PACKED", "DISPATCHED", "IN_TRANSIT", "DELIVERED"].map((st) => (
+          {["ALL", "ORDER_RECEIVED", "QR_GENERATED", "PACKED", "QUALITY_CHECK", "DISPATCHED", "IN_TRANSIT", "DELIVERED"].map((st) => (
             <button
               key={st}
               onClick={() => setStatusFilter(st)}
@@ -96,7 +96,7 @@ export default function OrdersPage() {
 
       {/* Orders List Table */}
       {loading ? (
-        <div className="p-12 text-center text-xs text-[#94A3B8]">Loading orders database...</div>
+        <div className="p-12 text-center text-xs text-[#94A3B8]">Loading incoming orders database...</div>
       ) : error ? (
         <div className="p-6 rounded-xl bg-red-950/40 border border-red-500/40 text-xs text-red-300">
           {error}
@@ -104,8 +104,8 @@ export default function OrdersPage() {
       ) : orders.length === 0 ? (
         <div className="p-12 text-center bg-[#0D121A] rounded-xl border border-[#1E293B] space-y-2">
           <Package className="w-10 h-10 text-[#64748B] mx-auto" />
-          <div className="text-sm font-semibold text-white">No Orders Found</div>
-          <p className="text-xs text-[#94A3B8]">No customer orders match the selected search criteria.</p>
+          <div className="text-sm font-semibold text-white">No Incoming Orders Found</div>
+          <p className="text-xs text-[#94A3B8]">No incoming orders match the selected search criteria.</p>
         </div>
       ) : (
         <div className="bg-[#0D121A] rounded-xl border border-[#1E293B] overflow-hidden shadow-xl">
@@ -114,10 +114,11 @@ export default function OrdersPage() {
               <thead className="bg-[#111821] text-[#94A3B8] uppercase border-b border-[#1E293B] font-medium">
                 <tr>
                   <th className="px-5 py-3.5">Order ID</th>
+                  <th className="px-5 py-3.5">Sales Channel</th>
                   <th className="px-5 py-3.5">Customer</th>
                   <th className="px-5 py-3.5">Product Name</th>
                   <th className="px-5 py-3.5">Assigned Product ID</th>
-                  <th className="px-5 py-3.5">Order Date</th>
+                  <th className="px-5 py-3.5">Registered Date</th>
                   <th className="px-5 py-3.5">Status</th>
                   <th className="px-5 py-3.5 text-right">Action</th>
                 </tr>
@@ -125,7 +126,15 @@ export default function OrdersPage() {
               <tbody className="divide-y divide-[#1E293B] text-slate-200">
                 {orders.map((ord) => (
                   <tr key={ord._id} className="hover:bg-[#111821]/60 transition-colors">
-                    <td className="px-5 py-4 font-mono font-semibold text-cyan-400">{ord.orderId}</td>
+                    <td className="px-5 py-4 font-mono font-semibold text-cyan-400">
+                      {ord.orderId}
+                      {ord.externalOrderId && (
+                        <div className="text-[10px] text-[#94A3B8] font-mono">Ext: {ord.externalOrderId}</div>
+                      )}
+                    </td>
+                    <td className="px-5 py-4 text-[#94A3B8] font-medium">
+                      {ord.salesChannel || "Direct Sales"}
+                    </td>
                     <td className="px-5 py-4">
                       <div className="font-semibold text-white">{ord.customerName}</div>
                       <div className="text-[11px] text-[#94A3B8]">{ord.customerContact}</div>
@@ -137,8 +146,8 @@ export default function OrdersPage() {
                           {ord.assignedProducts[0].productId || ord.assignedProducts[0]}
                         </span>
                       ) : (
-                        <span className="text-amber-400 text-xs bg-amber-950/60 px-2 py-0.5 rounded border border-amber-500/30">
-                          Unassigned
+                        <span className="text-amber-400 text-xs bg-amber-950/60 px-2 py-0.5 rounded border border-amber-500/30 font-medium">
+                          Pending Assignment
                         </span>
                       )}
                     </td>

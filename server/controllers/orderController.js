@@ -36,6 +36,8 @@ const createOrder = async (req, res) => {
     await ensureDbConnected();
 
     const {
+      externalOrderId,
+      salesChannel,
       customerName,
       customerContact,
       customerAddress,
@@ -54,6 +56,8 @@ const createOrder = async (req, res) => {
     }
 
     // 2. Normalize and Sanitize Inputs
+    const extId = externalOrderId ? String(externalOrderId).trim().toUpperCase() : "";
+    const channel = salesChannel ? String(salesChannel).trim() : "Direct Sales";
     const cName = String(customerName).trim();
     const cContact = String(customerContact).trim();
     const cAddress = String(customerAddress).trim();
@@ -62,22 +66,30 @@ const createOrder = async (req, res) => {
     const parsedQuantity = Math.max(1, parseInt(quantity, 10) || 1);
     const parsedDeliveryDate = parseFlexibleDate(expectedDeliveryDate);
 
-    // 3. Generate Unique Order ID (with collision check)
+    // 3. Generate Unique Internal Order ID (with collision check)
     let orderId = "";
     let isUnique = false;
     let attempts = 0;
 
     while (!isUnique && attempts < 5) {
       const randomNum = Math.floor(10000 + Math.random() * 90000);
-      orderId = `ORD-${new Date().getFullYear()}-${randomNum}`;
+      orderId = extId ? `ORD-${extId}` : `ORD-${new Date().getFullYear()}-${randomNum}`;
       const existing = await Order.findOne({ orderId });
-      if (!existing) isUnique = true;
+      if (!existing) {
+        isUnique = true;
+      } else {
+        // If external ID collides, append random string
+        orderId = `ORD-${extId || new Date().getFullYear()}-${randomNum}`;
+        isUnique = true;
+      }
       attempts++;
     }
 
     // 4. Save Order to Database
     const order = await Order.create({
       orderId,
+      externalOrderId: extId,
+      salesChannel: channel,
       customerName: cName,
       customerContact: cContact,
       customerAddress: cAddress,
@@ -90,11 +102,11 @@ const createOrder = async (req, res) => {
       remarks: remarks ? String(remarks).trim() : "",
     });
 
-    console.log(`✅ Order ${orderId} created successfully for customer ${cName}`);
+    console.log(`✅ Order ${orderId} registered successfully for customer ${cName} via channel ${channel}`);
 
     return res.status(201).json({
       success: true,
-      message: `Order ${orderId} created successfully.`,
+      message: `Incoming order ${orderId} registered successfully.`,
       order,
     });
   } catch (error) {
