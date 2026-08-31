@@ -158,6 +158,10 @@ async function seedDigitalAssets() {
   console.log("✓ Seeded 3 Verification History Logs (AUTHENTIC, MODIFIED, NOT_REGISTERED).");
   console.log("\n=== SEED COMPLETE CLEAN ===");
   await mongoose.disconnect();
+  process.exit(0);
 }
 
-seedDigitalAssets().catch(console.error);
+seedDigitalAssets().catch((err) => {
+  console.error("Seed Script Error:", err);
+  process.exit(1);
+});

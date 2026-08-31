@@ -1,18 +1,17 @@
 {
-  "name": "verimark-workspace",
+  "name": "verifyx-workspace",
   "version": "1.0.0",
-  "description": "VeriMark - Blockchain-Based Product Authentication System",
+  "description": "VerifyX - Blockchain-Based Digital Asset Authentication & Verification System",
   "private": true,
   "scripts": {
     "install:all": "npm install && npm --prefix client install && npm --prefix blockchain install",
     "vercel-build": "npm run install:all && npm --prefix client run build",
-    "seed": "node server/scripts/seed.js",
+    "seed": "node scripts/seed_digital_assets.js",
     "server": "node server/server.js",
     "client": "npm --prefix client run dev",
     "hardhat:node": "npm --prefix blockchain run node",
     "hardhat:test": "npm --prefix blockchain run test",
-    "hardhat:deploy": "npm --prefix blockchain run deploy",
-    "test:server": "npm --prefix server run test"
+    "hardhat:deploy": "npm --prefix blockchain run deploy"
   },
   "dependencies": {
     "axios": "^1.20.0",
@@ -31,12 +30,12 @@
     "blockchain",
     "ethereum",
     "solidity",
-    "product-authentication",
+    "digital-asset-authentication",
     "sha256",
     "express",
     "react",
     "mongodb"
   ],
-  "author": "VeriMark Team",
-  "license": "ISC"
+  "author": "VerifyX Team",
+  "license": "MIT"
 }
