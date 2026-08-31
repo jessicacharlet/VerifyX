@@ -13,6 +13,7 @@ import RegisterAssetPage from "./pages/RegisterAssetPage";
 import AssetDetailPage from "./pages/AssetDetailPage";
 import VerifyAssetPage from "./pages/VerifyAssetPage";
 import VerificationHistoryPage from "./pages/VerificationHistoryPage";
+import BlockchainDetailPage from "./pages/BlockchainDetailPage";
 import ProfilePage from "./pages/ProfilePage";
 
 export default function App() {
@@ -33,6 +34,7 @@ export default function App() {
               <Route path="/assets" element={<AssetsPage />} />
               <Route path="/assets/register" element={<RegisterAssetPage />} />
               <Route path="/assets/:id" element={<AssetDetailPage />} />
+              <Route path="/blockchain/:id" element={<BlockchainDetailPage />} />
               <Route path="/verify" element={<VerifyAssetPage />} />
               <Route path="/verification-history" element={<VerificationHistoryPage />} />
               <Route path="/profile" element={<ProfilePage />} />
