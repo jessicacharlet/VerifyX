@@ -4,7 +4,7 @@ import { ShieldCheck, ExternalLink, Lock } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer className="bg-[#070A0F] border-t border-[#1E293B] py-5 px-4 font-mono text-xs text-[#94A3B8]">
+    <footer className="bg-[#070A0F] border-t border-[#1E293B] py-5 px-4 font-sans text-xs text-[#94A3B8]">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
         {/* Left: Brand Identity */}
         <div className="flex items-center space-x-2.5">
@@ -13,20 +13,23 @@ export default function Footer() {
           </div>
           <span className="font-bold text-white text-xs tracking-tight">VERIFYX</span>
           <span className="text-[#64748B] text-[11px]">
-            • Digital Authenticity & Verification Platform
+            • Digital Asset Authentication & Verification Platform
           </span>
         </div>
 
-        {/* Center/Right: Quick Navigation Links */}
+        {/* Navigation Links */}
         <div className="flex items-center space-x-5 text-[11px]">
           <Link to="/" className="hover:text-white transition-colors">
             Home
           </Link>
-          <Link to="/products" className="hover:text-white transition-colors">
-            Products
+          <Link to="/assets" className="hover:text-white transition-colors">
+            Assets
           </Link>
           <Link to="/verify" className="hover:text-white transition-colors">
             Verify Asset
+          </Link>
+          <Link to="/verification-history" className="hover:text-white transition-colors">
+            Audit History
           </Link>
           <a
             href="https://github.com/jessicacharlet/VerifyX"

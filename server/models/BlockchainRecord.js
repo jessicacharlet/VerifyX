@@ -2,23 +2,19 @@ const mongoose = require("mongoose");
 
 const blockchainRecordSchema = new mongoose.Schema(
   {
-    productId: {
+    recordId: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    assetId: {
       type: String,
       required: true,
       index: true,
     },
-    scanId: {
-      type: String,
-      default: "",
-    },
-    stage: {
+    sha256Hash: {
       type: String,
       required: true,
-    },
-    eventHash: {
-      type: String,
-      required: true,
-      index: true,
     },
     transactionHash: {
       type: String,
@@ -26,11 +22,11 @@ const blockchainRecordSchema = new mongoose.Schema(
     },
     blockNumber: {
       type: Number,
-      default: 0,
+      default: null,
     },
     network: {
       type: String,
-      default: "Ethereum Sepolia / Hardhat Local",
+      default: "Ethereum",
     },
     contractAddress: {
       type: String,
@@ -38,7 +34,7 @@ const blockchainRecordSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["CONFIRMED", "PENDING", "FAILED", "NOT_CONFIGURED"],
+      enum: ["PENDING", "CONFIRMED", "FAILED", "NOT_CONFIGURED"],
       default: "NOT_CONFIGURED",
     },
     timestamp: {

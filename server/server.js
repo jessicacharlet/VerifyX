@@ -5,14 +5,10 @@ const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, "../.env") });
 
 const authRoutes = require("./routes/authRoutes");
-const productRoutes = require("./routes/productRoutes");
+const assetRoutes = require("./routes/assetRoutes");
 const verifyRoutes = require("./routes/verifyRoutes");
-const adminRoutes = require("./routes/adminRoutes");
+const dashboardRoutes = require("./routes/dashboardRoutes");
 const blockchainRoutes = require("./routes/blockchainRoutes");
-const orderRoutes = require("./routes/orderRoutes");
-const scanRoutes = require("./routes/scanRoutes");
-const issueRoutes = require("./routes/issueRoutes");
-const shipmentRoutes = require("./routes/shipmentRoutes");
 
 const app = express();
 
@@ -24,32 +20,28 @@ app.use(
   })
 );
 
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
 // Disable Mongoose query buffering
 mongoose.set("bufferCommands", false);
 
 // Static uploads folder
-const uploadsPath = path.join(__dirname, "../uploads");
+const uploadsPath = path.join(__dirname, "./uploads");
 app.use("/uploads", express.static(uploadsPath));
 
-// API Routes
+// Digital Asset API Routes
 app.use("/api/auth", authRoutes);
-app.use("/api/products", productRoutes);
+app.use("/api/assets", assetRoutes);
 app.use("/api/verify", verifyRoutes);
-app.use("/api/admin", adminRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/blockchain", blockchainRoutes);
-app.use("/api/orders", orderRoutes);
-app.use("/api/scans", scanRoutes);
-app.use("/api/issues", issueRoutes);
-app.use("/api/shipments", shipmentRoutes);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     status: "OK",
-    service: "VeriMark Enterprise Product Authenticity API",
+    service: "VerifyX Digital Asset Authentication API",
     timestamp: new Date(),
     environment: process.env.NODE_ENV || "development",
     dbConnected: mongoose.connection.readyState === 1,
@@ -58,7 +50,7 @@ app.get("/api/health", (req, res) => {
 
 // Global Error Handler
 app.use((err, req, res, next) => {
-  console.error("Unhandled Error:", err);
+  console.error("Unhandled Server Error:", err);
   res.status(err.status || 500).json({
     success: false,
     message: err.message || "Internal Server Error",
@@ -72,16 +64,19 @@ mongoose
   .connect(MONGO_URI, { serverSelectionTimeoutMS: 5000, bufferCommands: false })
   .then(() => {
     console.log("✅ MongoDB connected successfully to database: verimark");
-    app.listen(PORT, () => {
-      console.log(`🚀 VeriMark REST API server listening on http://localhost:${PORT}`);
-    });
+    if (process.env.NODE_ENV !== "production") {
+      app.listen(PORT, () => {
+        console.log(`🚀 VerifyX Digital Asset API listening on http://localhost:${PORT}`);
+      });
+    }
   })
   .catch((err) => {
     console.error("❌ MongoDB connection error:", err.message);
-    console.log("Starting server without active MongoDB connection (fallback mode)...");
-    app.listen(PORT, () => {
-      console.log(`⚠️ VeriMark server running in offline fallback mode on http://localhost:${PORT}`);
-    });
+    if (process.env.NODE_ENV !== "production") {
+      app.listen(PORT, () => {
+        console.log(`⚠️ VerifyX server running in offline fallback mode on http://localhost:${PORT}`);
+      });
+    }
   });
 
 module.exports = app;

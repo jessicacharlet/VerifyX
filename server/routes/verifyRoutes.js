@@ -1,9 +1,11 @@
 const express = require("express");
-const { verifyProduct, getVerificationByProductId, getProductHistory } = require("../controllers/verifyController");
-
 const router = express.Router();
+const { verifyAsset, getVerificationHistory, getVerificationById } = require("../controllers/verifyAssetController");
+const { optionalAuth } = require("../middleware/authMiddleware");
+const upload = require("../middleware/upload");
 
-router.post("/", verifyProduct);
-router.get("/:productId", getVerificationByProductId);
+router.post("/", optionalAuth, upload.single("file"), verifyAsset);
+router.get("/history", getVerificationHistory);
+router.get("/history/:id", getVerificationById);
 
 module.exports = router;
