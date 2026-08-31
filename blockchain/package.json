@@ -15,6 +15,7 @@
     "dotenv": "^16.4.5",
     "ethers": "^6.11.1",
     "hardhat": "^2.22.2",
+    "verifyx-workspace": "file:..",
     "verimark-workspace": "file:.."
   }
 }

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Upload, FileCode, CheckCircle, AlertTriangle, Loader2, ArrowLeft, Cpu } from "lucide-react";
+import { Upload, FileCode, CheckCircle, AlertTriangle, Loader2, ArrowLeft, Cpu, ExternalLink, Search } from "lucide-react";
 import API from "../services/api";
 
 export default function RegisterAssetPage() {
@@ -10,6 +10,7 @@ export default function RegisterAssetPage() {
   const [file, setFile] = useState(null);
   const [previewHash, setPreviewHash] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState("Generating SHA-256 & Registering...");
   const [error, setError] = useState("");
   const [successResult, setSuccessResult] = useState(null);
 
@@ -44,10 +45,13 @@ export default function RegisterAssetPage() {
     try {
       setLoading(true);
       setError("");
+      setLoadingText("Generating SHA-256 from file bytes...");
 
       const formData = new FormData();
       formData.append("file", file);
       formData.append("assetName", assetName || file.name);
+
+      setLoadingText("Storing asset metadata & recording authenticity proof...");
 
       const res = await API.post("/assets/register", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -56,7 +60,7 @@ export default function RegisterAssetPage() {
       if (res.data && res.data.success) {
         setSuccessResult(res.data);
       } else {
-        setError(res.data?.message || "Failed to register digital asset.");
+        setError(res.data?.message || "Asset registration failed.");
       }
     } catch (err) {
       console.error("Register Asset Submit Error:", err);
@@ -69,6 +73,14 @@ export default function RegisterAssetPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleResetForm = () => {
+    setSuccessResult(null);
+    setFile(null);
+    setAssetName("");
+    setPreviewHash("");
+    setError("");
   };
 
   return (
@@ -88,65 +100,90 @@ export default function RegisterAssetPage() {
             <span>Register Digital Asset</span>
           </h1>
           <p className="text-xs text-[#94A3B8]">
-            Upload a digital asset to generate its cryptographic fingerprint and register its authenticity record on MongoDB and Ethereum smart contract.
+            Register a digital asset by generating its cryptographic fingerprint and recording its authenticity information on MongoDB and Ethereum smart contract.
           </p>
         </div>
 
         {error && (
           <div className="p-4 rounded-lg bg-red-950/60 border border-red-500/40 text-xs text-red-300 flex items-start space-x-2">
             <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
-            <span>{error}</span>
+            <div className="space-y-1">
+              <div className="font-semibold text-red-200">Registration Failed</div>
+              <div>{error}</div>
+            </div>
           </div>
         )}
 
+        {/* Success Confirmation Card */}
         {successResult ? (
-          <div className="p-6 rounded-xl bg-emerald-950/40 border border-emerald-500/40 space-y-4">
-            <div className="flex items-center space-x-2 text-emerald-400 font-semibold text-sm">
-              <CheckCircle className="w-5 h-5" />
-              <span>Digital Asset Registered Successfully!</span>
+          <div className="p-6 rounded-xl bg-emerald-950/40 border border-emerald-500/40 space-y-5 shadow-2xl">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400">
+                <CheckCircle className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-white tracking-tight">Asset Registered Successfully</h2>
+                <p className="text-xs text-emerald-300">✓ Digital Asset Registered & SHA-256 Fingerprint Generated</p>
+              </div>
             </div>
 
-            <div className="space-y-2 text-xs font-sans">
-              <div className="p-3 rounded bg-[#0D121A] border border-[#1E293B] flex justify-between">
+            <div className="space-y-3 text-xs font-sans">
+              <div className="p-3.5 rounded bg-[#0D121A] border border-[#1E293B] flex justify-between">
                 <span className="text-[#94A3B8]">Asset ID:</span>
-                <span className="text-cyan-400 font-mono font-bold">{successResult.asset.assetId}</span>
+                <span className="text-cyan-400 font-mono font-bold text-sm">{successResult.asset.assetId}</span>
               </div>
 
-              <div className="p-3 rounded bg-[#0D121A] border border-[#1E293B] flex justify-between">
+              <div className="p-3.5 rounded bg-[#0D121A] border border-[#1E293B] flex justify-between">
                 <span className="text-[#94A3B8]">Asset Name:</span>
                 <span className="text-white font-semibold">{successResult.asset.assetName}</span>
               </div>
 
-              <div className="p-3 rounded bg-[#0D121A] border border-[#1E293B] space-y-1">
+              <div className="p-3.5 rounded bg-[#0D121A] border border-[#1E293B] space-y-1">
                 <span className="text-[#94A3B8] block">SHA-256 Cryptographic Hash:</span>
-                <span className="text-emerald-300 font-mono text-[11px] break-all block">
+                <code className="text-emerald-300 font-mono text-[11px] break-all block p-2 rounded bg-[#111821] border border-[#1E293B]">
                   {successResult.asset.sha256Hash}
-                </span>
+                </code>
               </div>
 
-              <div className="p-3 rounded bg-[#0D121A] border border-[#1E293B] flex justify-between items-center">
+              <div className="p-3.5 rounded bg-[#0D121A] border border-[#1E293B] flex justify-between items-center">
                 <span className="text-[#94A3B8] flex items-center space-x-1.5">
                   <Cpu className="w-3.5 h-3.5 text-cyan-400" />
                   <span>Blockchain Status:</span>
                 </span>
-                <span className="text-cyan-400 font-semibold uppercase">{successResult.asset.blockchainStatus}</span>
+                <span className="text-cyan-400 font-semibold uppercase">{successResult.asset.blockchainStatus || "NOT_CONFIGURED"}</span>
+              </div>
+
+              {successResult.asset.transactionHash && (
+                <div className="p-3.5 rounded bg-[#0D121A] border border-[#1E293B] space-y-1">
+                  <span className="text-[#94A3B8] block">Transaction Reference Hash:</span>
+                  <code className="text-cyan-300 font-mono text-[11px] break-all block p-2 rounded bg-[#111821] border border-[#1E293B]">
+                    {successResult.asset.transactionHash}
+                  </code>
+                </div>
+              )}
+
+              <div className="p-3.5 rounded bg-[#0D121A] border border-[#1E293B] flex justify-between">
+                <span className="text-[#94A3B8]">Registration Date:</span>
+                <span className="text-slate-200">{new Date(successResult.asset.createdAt).toLocaleString()}</span>
               </div>
             </div>
 
-            <div className="flex gap-3 pt-2">
+            <div className="flex flex-wrap gap-3 pt-2">
               <Link
                 to={`/assets/${successResult.asset.assetId}`}
-                className="px-4 py-2.5 rounded-lg bg-cyan-400 hover:bg-cyan-300 text-[#070A0F] font-semibold text-xs transition-colors"
+                className="px-4 py-2.5 rounded-lg bg-cyan-400 hover:bg-cyan-300 text-[#070A0F] font-semibold text-xs transition-colors flex items-center space-x-1.5"
               >
-                View Asset Details
+                <span>View Asset Details</span>
+              </Link>
+              <Link
+                to="/verify"
+                className="px-4 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-[#070A0F] font-semibold text-xs transition-colors flex items-center space-x-1.5"
+              >
+                <Search className="w-3.5 h-3.5" />
+                <span>Verify Asset</span>
               </Link>
               <button
-                onClick={() => {
-                  setSuccessResult(null);
-                  setFile(null);
-                  setAssetName("");
-                  setPreviewHash("");
-                }}
+                onClick={handleResetForm}
                 className="px-4 py-2.5 rounded-lg bg-[#111821] hover:bg-[#1E293B] text-white border border-[#1E293B] font-medium text-xs transition-colors"
               >
                 Register Another Asset
@@ -176,7 +213,7 @@ export default function RegisterAssetPage() {
                     {file ? file.name : "Drag and drop digital asset file here"}
                   </div>
                   <p className="text-xs text-[#94A3B8]">
-                    Supports PDF, DOCX, PNG, JPG, JPEG, TXT (Max 50MB)
+                    Supported formats: PDF, DOC, DOCX, PNG, JPG, JPEG, TXT (Max 50MB)
                   </p>
                 </div>
 
@@ -196,17 +233,34 @@ export default function RegisterAssetPage() {
               </div>
             </div>
 
-            {/* File Details & Hash Preview */}
+            {/* Selected File Details & SHA-256 Preview Card */}
             {file && (
-              <div className="p-4 rounded-lg bg-[#111821] border border-[#1E293B] space-y-2">
-                <div className="flex justify-between text-slate-200 font-medium">
-                  <span>Selected File: {file.name}</span>
-                  <span className="text-[#94A3B8]">{(file.size / 1024).toFixed(1)} KB</span>
+              <div className="p-4 rounded-lg bg-[#111821] border border-[#1E293B] space-y-3">
+                <div className="font-semibold text-white border-b border-[#1E293B] pb-2">
+                  Selected File Information
                 </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                  <div>
+                    <span className="text-[#94A3B8] block text-[11px]">File Name:</span>
+                    <span className="text-slate-200 font-medium break-all">{file.name}</span>
+                  </div>
+                  <div>
+                    <span className="text-[#94A3B8] block text-[11px]">File Type:</span>
+                    <span className="text-slate-200 font-medium">{file.type || "Document"}</span>
+                  </div>
+                  <div>
+                    <span className="text-[#94A3B8] block text-[11px]">File Size:</span>
+                    <span className="text-slate-200 font-medium">{(file.size / 1024).toFixed(1)} KB</span>
+                  </div>
+                </div>
+
                 {previewHash && (
-                  <div className="space-y-1 pt-1 border-t border-[#1E293B]">
-                    <span className="text-[#94A3B8] block text-[11px]">Computed Client-Side SHA-256 Hash Preview:</span>
-                    <code className="text-cyan-400 font-mono text-[11px] break-all block">{previewHash}</code>
+                  <div className="space-y-1 pt-2 border-t border-[#1E293B]">
+                    <span className="text-[#94A3B8] block text-[11px]">SHA-256 Cryptographic Hash Preview:</span>
+                    <code className="text-cyan-400 font-mono text-[11px] break-all block p-2 rounded bg-[#0D121A] border border-[#1E293B]">
+                      {previewHash}
+                    </code>
                   </div>
                 )}
               </div>
@@ -220,7 +274,7 @@ export default function RegisterAssetPage() {
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Computing SHA-256 Hash & Registering...</span>
+                  <span>{loadingText}</span>
                 </>
               ) : (
                 <span>Generate Hash & Register Asset</span>
