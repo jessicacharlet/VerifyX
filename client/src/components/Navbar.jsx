@@ -68,19 +68,19 @@ export default function Navbar() {
               }`}
             >
               <FileCheck className="w-3.5 h-3.5" />
-              <span>Assets</span>
+              <span>My Assets</span>
             </Link>
 
             <Link
               to="/assets/register"
               className={`px-3 py-2 rounded-md transition-all flex items-center space-x-1.5 ${
                 isActive("/assets/register")
-                  ? "text-emerald-400 bg-emerald-950/80 border border-emerald-500/40 font-semibold"
-                  : "text-emerald-400 hover:bg-emerald-950/40"
+                  ? "text-cyan-400 bg-[#111821] border border-cyan-500/40 font-semibold"
+                  : "text-cyan-400 hover:bg-[#111821] hover:text-white"
               }`}
             >
               <Upload className="w-3.5 h-3.5" />
-              <span>Register Asset</span>
+              <span>Register File</span>
             </Link>
 
             <Link
@@ -92,7 +92,7 @@ export default function Navbar() {
               }`}
             >
               <Search className="w-3.5 h-3.5" />
-              <span>Verify Asset</span>
+              <span>Verify File</span>
             </Link>
 
             <Link
@@ -164,15 +164,15 @@ export default function Navbar() {
             Dashboard
           </Link>
           <Link to="/assets" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-md font-medium text-white hover:bg-[#111821]">
-            Registered Assets
+            My Assets
           </Link>
-          <Link to="/assets/register" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-md font-semibold text-emerald-400 bg-emerald-950/80">
-            Register Digital Asset
+          <Link to="/assets/register" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-md font-medium text-cyan-400 hover:bg-[#111821]">
+            Register File
           </Link>
           <Link to="/verify" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-md font-medium text-white hover:bg-[#111821]">
-            Verify Digital Asset
+            Verify File
           </Link>
-          <Link to="/verification-history" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-md font-medium text-white hover:bg-[#111821]">
+          <Link to="/verification-history" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-md font-medium text-[#94A3B8] hover:bg-[#111821]">
             Verification History
           </Link>
           <Link to="/profile" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-md font-medium text-cyan-400 hover:bg-[#111821]">

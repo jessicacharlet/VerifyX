@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { History, Search, CheckCircle, AlertTriangle, HelpCircle, FileCode } from "lucide-react";
+import { History, Search, FileCode, ChevronDown, ChevronUp } from "lucide-react";
 import API from "../services/api";
 
 export default function VerificationHistoryPage() {
@@ -8,6 +8,7 @@ export default function VerificationHistoryPage() {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [resultFilter, setResultFilter] = useState("ALL");
+  const [expandedId, setExpandedId] = useState(null);
 
   useEffect(() => {
     fetchHistory();
@@ -27,7 +28,7 @@ export default function VerificationHistoryPage() {
       }
     } catch (err) {
       console.error("Fetch verification history error:", err);
-      setError("Failed to load verification history logs.");
+      setError("Failed to load verification history.");
     } finally {
       setLoading(false);
     }
@@ -38,18 +39,27 @@ export default function VerificationHistoryPage() {
     fetchHistory();
   };
 
+  const formatDate = (dateString) => {
+    if (!dateString) return "—";
+    return new Date(dateString).toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 font-sans">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0D121A] p-6 rounded-xl border border-[#1E293B] shadow-lg">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0D121A] p-6 sm:p-8 rounded-xl border border-[#1E293B] shadow-lg">
         <div className="space-y-1">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-400 text-xs font-medium">
-            <History className="w-3.5 h-3.5" />
-            <span>Audit Trail Registry</span>
-          </div>
-          <h1 className="text-2xl font-semibold text-white tracking-tight">Verification History</h1>
-          <p className="text-xs text-[#94A3B8]">
-            Persistent audit history of all digital asset verification attempts, submitted SHA-256 hashes, and match statuses.
+          <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+            Verification History
+          </h1>
+          <p className="text-xs sm:text-sm text-[#94A3B8]">
+            Audit history of all digital asset verification attempts and results.
           </p>
         </div>
       </div>
@@ -61,24 +71,29 @@ export default function VerificationHistoryPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search Verification ID, Asset ID, File Name..."
+            placeholder="Search by file name or ID..."
             className="w-full px-4 py-2.5 pl-10 rounded-lg bg-[#111821] border border-[#1E293B] text-white text-xs placeholder-[#64748B] focus:outline-none focus:border-cyan-400"
           />
           <Search className="w-4 h-4 text-[#94A3B8] absolute left-3 top-3" />
         </form>
 
         <div className="flex flex-wrap gap-1.5 text-xs font-medium w-full md:w-auto">
-          {["ALL", "AUTHENTIC", "MODIFIED", "NOT_REGISTERED"].map((resKey) => (
+          {[
+            { key: "ALL", label: "All Results" },
+            { key: "AUTHENTIC", label: "Original" },
+            { key: "MODIFIED", label: "Modified" },
+            { key: "NOT_REGISTERED", label: "Not Registered" },
+          ].map((item) => (
             <button
-              key={resKey}
-              onClick={() => setResultFilter(resKey)}
+              key={item.key}
+              onClick={() => setResultFilter(item.key)}
               className={`px-3 py-1.5 rounded-md transition-all ${
-                resultFilter === resKey
-                  ? "bg-cyan-400 text-[#070A0F] font-semibold"
+                resultFilter === item.key
+                  ? "bg-cyan-500 text-[#070A0F] font-semibold"
                   : "bg-[#111821] text-[#94A3B8] hover:text-white border border-[#1E293B]"
               }`}
             >
-              {resKey}
+              {item.label}
             </button>
           ))}
         </div>
@@ -86,7 +101,7 @@ export default function VerificationHistoryPage() {
 
       {/* History Log Table */}
       {loading ? (
-        <div className="p-12 text-center text-xs text-[#94A3B8]">Loading verification history logs...</div>
+        <div className="p-12 text-center text-xs text-[#94A3B8]">Loading verification history...</div>
       ) : error ? (
         <div className="p-6 rounded-xl bg-red-950/40 border border-red-500/40 text-xs text-red-300">
           {error}
@@ -94,56 +109,87 @@ export default function VerificationHistoryPage() {
       ) : history.length === 0 ? (
         <div className="p-12 text-center bg-[#0D121A] rounded-xl border border-[#1E293B] space-y-2">
           <FileCode className="w-10 h-10 text-[#64748B] mx-auto" />
-          <div className="text-sm font-semibold text-white">No Verification History Logged</div>
+          <div className="text-base font-semibold text-white">No Verification History Logged</div>
           <p className="text-xs text-[#94A3B8]">No verification attempts match the selected query.</p>
         </div>
       ) : (
-        <div className="bg-[#0D121A] rounded-xl border border-[#1E293B] overflow-hidden shadow-xl">
+        <div className="bg-[#0D121A] rounded-xl border border-[#1E293B] overflow-hidden shadow-lg">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-[#111821] text-[#94A3B8] uppercase border-b border-[#1E293B] font-medium">
+              <thead className="bg-[#111821] text-[#94A3B8] border-b border-[#1E293B] font-medium">
                 <tr>
-                  <th className="px-5 py-3.5">Verification ID</th>
-                  <th className="px-5 py-3.5">Asset ID</th>
-                  <th className="px-5 py-3.5">File Name</th>
-                  <th className="px-5 py-3.5">Submitted SHA-256 Hash</th>
-                  <th className="px-5 py-3.5">Verification Result</th>
-                  <th className="px-5 py-3.5 text-right">Timestamp</th>
+                  <th className="px-6 py-4">File Name</th>
+                  <th className="px-6 py-4">Date</th>
+                  <th className="px-6 py-4">Result</th>
+                  <th className="px-6 py-4 text-right">Technical Details</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#1E293B] text-slate-200">
-                {history.map((h) => (
-                  <tr key={h._id} className="hover:bg-[#111821]/60 transition-colors">
-                    <td className="px-5 py-4 font-mono font-semibold text-cyan-400">
-                      {h.verificationId}
-                    </td>
-                    <td className="px-5 py-4 font-mono text-slate-200">
-                      {h.assetId || "UNREGISTERED"}
-                    </td>
-                    <td className="px-5 py-4 font-medium text-white">
-                      {h.fileName}
-                    </td>
-                    <td className="px-5 py-4 font-mono text-[11px] text-emerald-300">
-                      {h.submittedHash ? `${h.submittedHash.substring(0, 20)}...` : "—"}
-                    </td>
-                    <td className="px-5 py-4">
-                      <span
-                        className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border ${
-                          h.result === "AUTHENTIC"
-                            ? "bg-emerald-950/80 text-emerald-300 border-emerald-500/40"
-                            : h.result === "MODIFIED"
-                            ? "bg-red-950/80 text-red-300 border-red-500/40"
-                            : "bg-amber-950/80 text-amber-300 border-amber-500/40"
-                        }`}
-                      >
-                        {h.result}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4 text-right text-[#94A3B8]">
-                      {new Date(h.timestamp).toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
+                {history.map((h) => {
+                  const isExpanded = expandedId === h._id;
+                  return (
+                    <React.Fragment key={h._id}>
+                      <tr className="hover:bg-[#111821]/60 transition-colors">
+                        <td className="px-6 py-4 font-semibold text-white">
+                          {h.fileName}
+                          {h.assetId && (
+                            <div className="text-[11px] text-[#94A3B8] font-mono font-normal mt-0.5">
+                              ID: {h.assetId}
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-[#94A3B8]">
+                          {formatDate(h.timestamp)}
+                        </td>
+                        <td className="px-6 py-4">
+                          {h.result === "AUTHENTIC" && (
+                            <span className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-950/80 text-emerald-300 border border-emerald-500/30">
+                              ✓ Original
+                            </span>
+                          )}
+                          {h.result === "MODIFIED" && (
+                            <span className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-amber-950/80 text-amber-300 border border-amber-500/30">
+                              ⚠ Modified
+                            </span>
+                          )}
+                          {h.result === "NOT_REGISTERED" && (
+                            <span className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-900 text-slate-300 border border-slate-700">
+                              ? Not Registered
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <button
+                            onClick={() => setExpandedId(isExpanded ? null : h._id)}
+                            className="inline-flex items-center space-x-1 px-3 py-1.5 rounded bg-[#111821] hover:bg-[#1E293B] text-[#94A3B8] hover:text-white border border-[#1E293B] font-medium transition-colors"
+                          >
+                            <span>{isExpanded ? "Hide" : "Show"} Details</span>
+                            {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                          </button>
+                        </td>
+                      </tr>
+
+                      {isExpanded && (
+                        <tr className="bg-[#111821]/80">
+                          <td colSpan={4} className="px-6 py-4">
+                            <div className="p-3.5 rounded-lg bg-[#0D121A] border border-[#1E293B] space-y-2 text-xs">
+                              <div className="flex justify-between">
+                                <span className="text-[#94A3B8]">Verification ID:</span>
+                                <span className="text-cyan-400 font-mono">{h.verificationId}</span>
+                              </div>
+                              <div className="space-y-1">
+                                <span className="text-[#94A3B8] block text-[11px]">Submitted Hash:</span>
+                                <code className="text-slate-300 font-mono text-[11px] break-all block p-2 rounded bg-[#111821] border border-[#1E293B]">
+                                  {h.submittedHash}
+                                </code>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
               </tbody>
             </table>
           </div>
