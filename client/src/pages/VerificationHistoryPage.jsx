@@ -1,14 +1,24 @@
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { History, Search, FileCode, ChevronDown, ChevronUp } from "lucide-react";
 import API from "../services/api";
+import { SkeletonTable } from "../components/Skeleton";
+import Tooltip from "../components/Tooltip";
 
 export default function VerificationHistoryPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const filterQuery = searchParams.get("filter") || "ALL";
+
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
-  const [resultFilter, setResultFilter] = useState("ALL");
+  const [resultFilter, setResultFilter] = useState(filterQuery);
   const [expandedId, setExpandedId] = useState(null);
+
+  useEffect(() => {
+    setResultFilter(filterQuery);
+  }, [filterQuery]);
 
   useEffect(() => {
     fetchHistory();
@@ -39,6 +49,16 @@ export default function VerificationHistoryPage() {
     fetchHistory();
   };
 
+  const handleFilterChange = (key) => {
+    setResultFilter(key);
+    if (key === "ALL") {
+      searchParams.delete("filter");
+    } else {
+      searchParams.set("filter", key);
+    }
+    setSearchParams(searchParams);
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return "—";
     return new Date(dateString).toLocaleString("en-GB", {
@@ -51,28 +71,28 @@ export default function VerificationHistoryPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 font-sans">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 font-sans animate-fadeIn">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0D121A] p-6 sm:p-8 rounded-xl border border-[#1E293B] shadow-lg">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0D1422] p-6 sm:p-8 rounded-xl border border-[#22304A] shadow-md">
         <div className="space-y-1">
           <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
             Verification History
           </h1>
           <p className="text-xs sm:text-sm text-[#94A3B8]">
-            Audit history of all digital asset verification attempts and results.
+            Review previous verification activity and search records.
           </p>
         </div>
       </div>
 
       {/* Toolbar: Search & Result Filters */}
-      <div className="bg-[#0D121A] p-4 rounded-xl border border-[#1E293B] flex flex-col md:flex-row gap-3 items-center justify-between">
+      <div className="bg-[#0D1422] p-4 rounded-xl border border-[#22304A] flex flex-col md:flex-row gap-3 items-center justify-between">
         <form onSubmit={handleSearchSubmit} className="relative w-full md:w-80">
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by file name or ID..."
-            className="w-full px-4 py-2.5 pl-10 rounded-lg bg-[#111821] border border-[#1E293B] text-white text-xs placeholder-[#64748B] focus:outline-none focus:border-cyan-400"
+            className="w-full px-4 py-2.5 pl-10 rounded-lg bg-[#111A2A] border border-[#22304A] text-white text-xs placeholder-[#64748B] focus:outline-none focus:border-sky-400 transition-colors"
           />
           <Search className="w-4 h-4 text-[#94A3B8] absolute left-3 top-3" />
         </form>
@@ -86,11 +106,11 @@ export default function VerificationHistoryPage() {
           ].map((item) => (
             <button
               key={item.key}
-              onClick={() => setResultFilter(item.key)}
-              className={`px-3 py-1.5 rounded-md transition-all ${
+              onClick={() => handleFilterChange(item.key)}
+              className={`px-3.5 py-1.5 rounded-lg transition-all ${
                 resultFilter === item.key
-                  ? "bg-cyan-500 text-[#070A0F] font-semibold"
-                  : "bg-[#111821] text-[#94A3B8] hover:text-white border border-[#1E293B]"
+                  ? "bg-sky-500 text-[#070B14] font-semibold"
+                  : "bg-[#111A2A] text-[#94A3B8] hover:text-white border border-[#22304A]"
               }`}
             >
               {item.label}
@@ -101,22 +121,24 @@ export default function VerificationHistoryPage() {
 
       {/* History Log Table */}
       {loading ? (
-        <div className="p-12 text-center text-xs text-[#94A3B8]">Loading verification history...</div>
+        <SkeletonTable rows={5} />
       ) : error ? (
         <div className="p-6 rounded-xl bg-red-950/40 border border-red-500/40 text-xs text-red-300">
           {error}
         </div>
       ) : history.length === 0 ? (
-        <div className="p-12 text-center bg-[#0D121A] rounded-xl border border-[#1E293B] space-y-2">
+        <div className="p-12 text-center bg-[#0D1422] rounded-xl border border-[#22304A] space-y-2">
           <FileCode className="w-10 h-10 text-[#64748B] mx-auto" />
-          <div className="text-base font-semibold text-white">No Verification History Logged</div>
-          <p className="text-xs text-[#94A3B8]">No verification attempts match the selected query.</p>
+          <div className="text-base font-semibold text-white">No Verification Activity</div>
+          <p className="text-xs text-[#94A3B8]">
+            Verification results will appear here after you verify a file.
+          </p>
         </div>
       ) : (
-        <div className="bg-[#0D121A] rounded-xl border border-[#1E293B] overflow-hidden shadow-lg">
+        <div className="bg-[#0D1422] rounded-xl border border-[#22304A] overflow-hidden shadow-md">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-[#111821] text-[#94A3B8] border-b border-[#1E293B] font-medium">
+              <thead className="bg-[#111A2A] text-[#94A3B8] border-b border-[#22304A] font-medium">
                 <tr>
                   <th className="px-6 py-4">File Name</th>
                   <th className="px-6 py-4">Date</th>
@@ -124,12 +146,12 @@ export default function VerificationHistoryPage() {
                   <th className="px-6 py-4 text-right">Technical Details</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#1E293B] text-slate-200">
+              <tbody className="divide-y divide-[#22304A] text-slate-200">
                 {history.map((h) => {
                   const isExpanded = expandedId === h._id;
                   return (
                     <React.Fragment key={h._id}>
-                      <tr className="hover:bg-[#111821]/60 transition-colors">
+                      <tr className="hover:bg-[#111A2A] transition-colors">
                         <td className="px-6 py-4 font-semibold text-white">
                           {h.fileName}
                           {h.assetId && (
@@ -153,7 +175,7 @@ export default function VerificationHistoryPage() {
                             </span>
                           )}
                           {h.result === "NOT_REGISTERED" && (
-                            <span className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-900 text-slate-300 border border-slate-700">
+                            <span className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-[#111A2A] text-slate-300 border border-[#22304A]">
                               ? Not Registered
                             </span>
                           )}
@@ -161,7 +183,7 @@ export default function VerificationHistoryPage() {
                         <td className="px-6 py-4 text-right">
                           <button
                             onClick={() => setExpandedId(isExpanded ? null : h._id)}
-                            className="inline-flex items-center space-x-1 px-3 py-1.5 rounded bg-[#111821] hover:bg-[#1E293B] text-[#94A3B8] hover:text-white border border-[#1E293B] font-medium transition-colors"
+                            className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-[#111A2A] hover:bg-[#162238] text-[#94A3B8] hover:text-white border border-[#22304A] font-medium transition-colors"
                           >
                             <span>{isExpanded ? "Hide" : "Show"} Details</span>
                             {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -170,16 +192,19 @@ export default function VerificationHistoryPage() {
                       </tr>
 
                       {isExpanded && (
-                        <tr className="bg-[#111821]/80">
+                        <tr className="bg-[#111A2A]/80">
                           <td colSpan={4} className="px-6 py-4">
-                            <div className="p-3.5 rounded-lg bg-[#0D121A] border border-[#1E293B] space-y-2 text-xs">
+                            <div className="p-4 rounded-lg bg-[#0D1422] border border-[#22304A] space-y-3 text-xs">
                               <div className="flex justify-between">
-                                <span className="text-[#94A3B8]">Verification ID:</span>
-                                <span className="text-cyan-400 font-mono">{h.verificationId}</span>
+                                <span className="text-[#94A3B8]">Verification Record ID:</span>
+                                <span className="text-sky-400 font-mono">{h.verificationId}</span>
                               </div>
                               <div className="space-y-1">
-                                <span className="text-[#94A3B8] block text-[11px]">Submitted Hash:</span>
-                                <code className="text-slate-300 font-mono text-[11px] break-all block p-2 rounded bg-[#111821] border border-[#1E293B]">
+                                <div className="flex items-center space-x-1">
+                                  <span className="text-[#94A3B8] text-[11px]">Submitted File SHA-256 Hash:</span>
+                                  <Tooltip text="A unique digital fingerprint generated from the file contents." />
+                                </div>
+                                <code className="text-slate-300 font-mono text-[11px] break-all block p-2 rounded bg-[#111A2A] border border-[#22304A]">
                                   {h.submittedHash}
                                 </code>
                               </div>

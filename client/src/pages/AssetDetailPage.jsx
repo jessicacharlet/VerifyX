@@ -6,11 +6,11 @@ import {
   Search,
   Clock,
   FileCode,
-  CheckCircle,
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
 import API from "../services/api";
+import Tooltip from "../components/Tooltip";
 
 export default function AssetDetailPage() {
   const { id } = useParams();
@@ -72,25 +72,25 @@ export default function AssetDetailPage() {
         <FileCode className="w-10 h-10 text-[#64748B] mx-auto" />
         <div className="text-base font-semibold text-white">File Record Not Found</div>
         <p className="text-xs text-[#94A3B8]">{error || "The requested file ID does not exist."}</p>
-        <Link to="/assets" className="inline-block px-4 py-2 bg-[#111821] text-cyan-400 rounded border border-[#1E293B] text-xs">
-          Back to My Registered Assets
+        <Link to="/assets" className="inline-block px-4 py-2 bg-[#111A2A] text-sky-400 rounded-lg border border-[#22304A] text-xs font-medium">
+          Back to Assets
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 font-sans">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 font-sans animate-fadeIn">
       <Link
         to="/assets"
         className="inline-flex items-center space-x-2 text-xs text-[#94A3B8] hover:text-white transition-colors font-medium"
       >
         <ArrowLeft className="w-4 h-4" />
-        <span>Back to My Registered Assets</span>
+        <span>Back to Assets</span>
       </Link>
 
       {/* Header Banner */}
-      <div className="bg-[#0D121A] p-6 sm:p-8 rounded-xl border border-[#1E293B] shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-[#0D1422] p-6 sm:p-8 rounded-xl border border-[#22304A] shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1.5">
           <div className="flex items-center space-x-2">
             <span className="text-xl font-bold text-white">{asset.assetName || asset.fileName}</span>
@@ -99,13 +99,13 @@ export default function AssetDetailPage() {
             </span>
           </div>
           <div className="text-xs text-[#94A3B8]">
-            Asset ID: <span className="text-cyan-400 font-mono font-bold">{asset.assetId}</span> • Registered On: {formatDate(asset.createdAt)}
+            Asset ID: <span className="text-sky-400 font-mono font-bold">{asset.assetId}</span> • Registered On: {formatDate(asset.createdAt)}
           </div>
         </div>
 
         <Link
           to="/verify"
-          className="px-5 py-3 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-[#070A0F] font-semibold text-xs flex items-center justify-center space-x-2 transition-all shadow-md shadow-cyan-500/20"
+          className="px-5 py-3 rounded-lg bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-300 hover:to-blue-400 text-[#070B14] font-bold text-xs flex items-center justify-center space-x-2 transition-all shadow-md shadow-sky-500/20"
         >
           <Search className="w-4 h-4" />
           <span>Verify This File</span>
@@ -113,58 +113,64 @@ export default function AssetDetailPage() {
       </div>
 
       {/* File Information Card */}
-      <div className="bg-[#0D121A] p-6 rounded-xl border border-[#1E293B] space-y-4 shadow-lg">
-        <h3 className="text-sm font-semibold text-white border-b border-[#1E293B] pb-3">
+      <div className="bg-[#0D1422] p-6 rounded-xl border border-[#22304A] space-y-4 shadow-md">
+        <h3 className="text-base font-semibold text-white border-b border-[#22304A] pb-3">
           File Information
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-          <div className="p-3.5 rounded-lg bg-[#111821] border border-[#1E293B] flex justify-between items-center">
+          <div className="p-3.5 rounded-lg bg-[#111A2A] border border-[#22304A] flex justify-between items-center">
             <span className="text-[#94A3B8]">File Name:</span>
-            <span className="text-white font-medium">{asset.fileName}</span>
+            <span className="text-white font-semibold">{asset.fileName}</span>
           </div>
 
-          <div className="p-3.5 rounded-lg bg-[#111821] border border-[#1E293B] flex justify-between items-center">
+          <div className="p-3.5 rounded-lg bg-[#111A2A] border border-[#22304A] flex justify-between items-center">
             <span className="text-[#94A3B8]">Registration Date:</span>
             <span className="text-slate-200">{formatDate(asset.createdAt)}</span>
           </div>
 
-          <div className="p-3.5 rounded-lg bg-[#111821] border border-[#1E293B] flex justify-between items-center">
+          <div className="p-3.5 rounded-lg bg-[#111A2A] border border-[#22304A] flex justify-between items-center">
             <span className="text-[#94A3B8]">Status:</span>
-            <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-950/80 text-emerald-300 border border-emerald-500/30">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-950/80 text-emerald-300 border border-emerald-500/30">
               Protected
             </span>
           </div>
 
-          <div className="p-3.5 rounded-lg bg-[#111821] border border-[#1E293B] flex justify-between items-center">
+          <div className="p-3.5 rounded-lg bg-[#111A2A] border border-[#22304A] flex justify-between items-center">
             <span className="text-[#94A3B8]">Verification Count:</span>
-            <span className="text-cyan-400 font-bold">{verifications.length}</span>
+            <span className="text-sky-400 font-bold text-sm">{verifications.length}</span>
           </div>
         </div>
 
         {/* Collapsible Technical Details */}
-        <div className="pt-3 border-t border-[#1E293B]">
+        <div className="pt-3 border-t border-[#22304A]">
           <button
             type="button"
             onClick={() => setShowTechDetails(!showTechDetails)}
             className="flex items-center space-x-1.5 text-xs text-[#94A3B8] hover:text-white transition-colors font-medium"
           >
             {showTechDetails ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            <span>Technical Information</span>
+            <span>Technical Verification Details</span>
           </button>
 
           {showTechDetails && (
-            <div className="mt-3 p-4 rounded-lg bg-[#111821] border border-[#1E293B] space-y-3 text-xs">
+            <div className="mt-3 p-4 rounded-lg bg-[#111A2A] border border-[#22304A] space-y-3 text-xs">
               <div className="space-y-1">
-                <span className="text-[#94A3B8] block text-[11px]">SHA-256 Hash:</span>
-                <code className="text-emerald-300 font-mono text-[11px] break-all block p-2 rounded bg-[#0D121A] border border-[#1E293B]">
+                <div className="flex items-center space-x-1">
+                  <span className="text-[#94A3B8] text-[11px]">SHA-256 Hash:</span>
+                  <Tooltip text="A unique digital fingerprint generated from the file contents." />
+                </div>
+                <code className="text-emerald-300 font-mono text-[11px] break-all block p-2 rounded bg-[#0D1422] border border-[#22304A]">
                   {asset.sha256Hash}
                 </code>
               </div>
 
-              <div className="flex justify-between">
-                <span className="text-[#94A3B8]">Blockchain Status:</span>
-                <span className="text-cyan-400 font-medium">{asset.blockchainStatus || "CONFIRMED"}</span>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-1">
+                  <span className="text-[#94A3B8]">Blockchain Status:</span>
+                  <Tooltip text="A tamper-resistant record used to preserve the authenticity information." />
+                </div>
+                <span className="text-sky-400 font-medium">{asset.blockchainStatus || "CONFIRMED"}</span>
               </div>
 
               {asset.network && (
@@ -177,7 +183,7 @@ export default function AssetDetailPage() {
               {asset.contractAddress && (
                 <div className="space-y-1">
                   <span className="text-[#94A3B8] block text-[11px]">Contract Address:</span>
-                  <code className="text-cyan-300 font-mono text-[11px] break-all block p-2 rounded bg-[#0D121A] border border-[#1E293B]">
+                  <code className="text-sky-300 font-mono text-[11px] break-all block p-2 rounded bg-[#0D1422] border border-[#22304A]">
                     {asset.contractAddress}
                   </code>
                 </div>
@@ -186,7 +192,7 @@ export default function AssetDetailPage() {
               {asset.transactionHash && (
                 <div className="space-y-1">
                   <span className="text-[#94A3B8] block text-[11px]">Transaction Hash:</span>
-                  <code className="text-cyan-300 font-mono text-[11px] break-all block p-2 rounded bg-[#0D121A] border border-[#1E293B]">
+                  <code className="text-sky-300 font-mono text-[11px] break-all block p-2 rounded bg-[#0D1422] border border-[#22304A]">
                     {asset.transactionHash}
                   </code>
                 </div>
@@ -197,9 +203,9 @@ export default function AssetDetailPage() {
       </div>
 
       {/* Verification History for this asset */}
-      <div className="bg-[#0D121A] p-6 rounded-xl border border-[#1E293B] space-y-4 shadow-lg">
-        <h3 className="text-sm font-semibold text-white border-b border-[#1E293B] pb-3 flex items-center space-x-2">
-          <Clock className="w-4 h-4 text-cyan-400" />
+      <div className="bg-[#0D1422] p-6 rounded-xl border border-[#22304A] space-y-4 shadow-md">
+        <h3 className="text-base font-semibold text-white border-b border-[#22304A] pb-3 flex items-center space-x-2">
+          <Clock className="w-4 h-4 text-sky-400" />
           <span>Verification Activity Log ({verifications.length})</span>
         </h3>
 
@@ -212,7 +218,7 @@ export default function AssetDetailPage() {
             verifications.map((v) => (
               <div
                 key={v._id}
-                className="p-3.5 rounded-lg bg-[#111821] border border-[#1E293B] flex items-center justify-between"
+                className="p-3.5 rounded-lg bg-[#111A2A] border border-[#22304A] flex items-center justify-between"
               >
                 <div>
                   <div className="font-semibold text-white">{v.fileName}</div>
@@ -220,17 +226,17 @@ export default function AssetDetailPage() {
                 </div>
                 <div>
                   {v.result === "AUTHENTIC" && (
-                    <span className="px-2.5 py-1 rounded text-[11px] font-medium bg-emerald-950/80 text-emerald-300 border border-emerald-500/30">
+                    <span className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-950/80 text-emerald-300 border border-emerald-500/30">
                       ✓ Original
                     </span>
                   )}
                   {v.result === "MODIFIED" && (
-                    <span className="px-2.5 py-1 rounded text-[11px] font-medium bg-amber-950/80 text-amber-300 border border-amber-500/30">
+                    <span className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-amber-950/80 text-amber-300 border border-amber-500/30">
                       ⚠ Modified
                     </span>
                   )}
                   {v.result === "NOT_REGISTERED" && (
-                    <span className="px-2.5 py-1 rounded text-[11px] font-medium bg-slate-900 text-slate-300 border border-slate-700">
+                    <span className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-[#0D1422] text-slate-300 border border-[#22304A]">
                       ? Not Registered
                     </span>
                   )}

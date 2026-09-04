@@ -12,24 +12,44 @@ import {
   RefreshCw,
   Eye,
   Plus,
+  FileText,
 } from "lucide-react";
 import API from "../services/api";
+import Tooltip from "../components/Tooltip";
 
 export default function VerifyAssetPage() {
   const [file, setFile] = useState(null);
   const [assetId, setAssetId] = useState("");
+  const [isDragging, setIsDragging] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState("Reading file...");
   const [error, setError] = useState("");
   const [resultData, setResultData] = useState(null);
   const [showTechDetails, setShowTechDetails] = useState(false);
 
-  const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
+  const handleFileChange = (selectedFile) => {
     if (!selectedFile) return;
 
     setFile(selectedFile);
     setError("");
     setResultData(null);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileChange(e.dataTransfer.files[0]);
+    }
   };
 
   const handleVerifySubmit = async (e) => {
@@ -39,19 +59,30 @@ export default function VerifyAssetPage() {
     try {
       setLoading(true);
       setError("");
+      setLoadingStep("Reading file...");
 
       const formData = new FormData();
       formData.append("file", file);
       if (assetId) formData.append("assetId", assetId.trim());
+
+      setLoadingStep("Generating fingerprint...");
 
       const res = await API.post("/verify", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
       if (res.data && res.data.success) {
-        setResultData(res.data);
+        setLoadingStep("Checking authenticity record...");
+        setTimeout(() => {
+          setLoadingStep("Preparing result...");
+          setTimeout(() => {
+            setResultData(res.data);
+            setLoading(false);
+          }, 300);
+        }, 300);
       } else {
         setError(res.data?.message || "Failed to execute asset verification.");
+        setLoading(false);
       }
     } catch (err) {
       console.error("Verify submit error:", err);
@@ -61,7 +92,6 @@ export default function VerifyAssetPage() {
         err.message ||
         "Verification service error. Please check connection.";
       setError(serverErrMsg);
-    } finally {
       setLoading(false);
     }
   };
@@ -86,9 +116,9 @@ export default function VerifyAssetPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 space-y-6 font-sans">
-      <div className="bg-[#0D121A] p-6 sm:p-8 rounded-xl border border-[#1E293B] shadow-xl space-y-6">
-        <div className="border-b border-[#1E293B] pb-4 space-y-1">
+    <div className="max-w-4xl mx-auto px-4 py-8 space-y-6 font-sans animate-fadeIn">
+      <div className="bg-[#0D1422] p-6 sm:p-8 rounded-xl border border-[#22304A] shadow-xl space-y-6">
+        <div className="border-b border-[#22304A] pb-4 space-y-1">
           <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
             Verify a Digital Asset
           </h1>
@@ -107,7 +137,7 @@ export default function VerifyAssetPage() {
           </div>
         )}
 
-        {/* Form state */}
+        {/* Upload Form state */}
         {!resultData ? (
           <form onSubmit={handleVerifySubmit} className="space-y-5 text-xs">
             <div className="space-y-1.5">
@@ -117,17 +147,26 @@ export default function VerifyAssetPage() {
                 value={assetId}
                 onChange={(e) => setAssetId(e.target.value)}
                 placeholder="e.g. AST-104921 (Optional)"
-                className="w-full px-3.5 py-2.5 rounded-lg bg-[#111821] border border-[#1E293B] text-white focus:outline-none focus:border-cyan-400 font-mono uppercase"
+                className="w-full px-3.5 py-2.5 rounded-lg bg-[#111A2A] border border-[#22304A] text-white focus:outline-none focus:border-sky-400 font-mono uppercase transition-colors"
               />
             </div>
 
             <div className="space-y-1.5">
               <label className="text-slate-200 block font-medium">Upload File to Verify *</label>
-              <div className="border-2 border-dashed border-[#1E293B] hover:border-cyan-500/50 rounded-xl p-8 text-center space-y-3 bg-[#111821]/50 transition-colors">
-                <FileCode className="w-10 h-10 text-cyan-400 mx-auto" />
+              <div
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={`border-2 border-dashed rounded-xl p-8 text-center space-y-3 bg-[#111A2A]/50 transition-all duration-200 ${
+                  isDragging
+                    ? "border-sky-400 bg-sky-500/10 scale-[1.01]"
+                    : "border-[#22304A] hover:border-sky-500/40"
+                }`}
+              >
+                <FileCode className="w-10 h-10 text-sky-400 mx-auto" />
                 <div className="space-y-1">
                   <div className="text-sm font-semibold text-white">
-                    {file ? `Selected File: ${file.name}` : "Upload File to Verify"}
+                    {file ? `Selected File: ${file.name}` : "Drop file here or Select File"}
                   </div>
                   <p className="text-xs text-[#94A3B8]">
                     Upload any digital file to check its authenticity
@@ -137,40 +176,42 @@ export default function VerifyAssetPage() {
                 <input
                   type="file"
                   id="verify-file-input"
-                  onChange={handleFileChange}
+                  onChange={(e) => handleFileChange(e.target.files[0])}
                   required
                   className="hidden"
                 />
                 <label
                   htmlFor="verify-file-input"
-                  className="inline-block px-4 py-2 rounded-lg bg-[#1E293B] hover:bg-[#2A394E] text-white font-medium text-xs cursor-pointer transition-colors"
+                  className="inline-block px-4 py-2 rounded-lg bg-[#22304A] hover:bg-[#2C3E5E] text-white font-medium text-xs cursor-pointer transition-colors"
                 >
-                  Choose File
+                  Select File
                 </label>
               </div>
             </div>
 
             {file && (
-              <div className="p-3.5 rounded-lg bg-[#111821] border border-[#1E293B] flex items-center justify-between">
-                <div>
-                  <span className="text-[#94A3B8] text-[11px] block">Selected File</span>
-                  <span className="text-white font-medium">{file.name}</span>
+              <div className="p-4 rounded-xl bg-[#111A2A] border border-[#22304A] flex items-center justify-between shadow-sm">
+                <div className="flex items-center space-x-3">
+                  <FileText className="w-8 h-8 text-sky-400" />
+                  <div>
+                    <div className="text-xs font-semibold text-white">{file.name}</div>
+                    <div className="text-[11px] text-[#94A3B8]">
+                      Type: {file.type || "Document"} • Size: {(file.size / 1024).toFixed(1)} KB
+                    </div>
+                  </div>
                 </div>
-                <span className="text-[#94A3B8] text-[11px]">
-                  {(file.size / 1024).toFixed(1)} KB
-                </span>
               </div>
             )}
 
             <button
               type="submit"
               disabled={!file || loading}
-              className="w-full py-3.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-[#070A0F] font-semibold text-xs transition-all shadow-md shadow-cyan-500/20 flex items-center justify-center space-x-2 cursor-pointer"
+              className="w-full py-3.5 rounded-lg bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-300 hover:to-blue-400 disabled:opacity-50 text-[#070B14] font-bold text-xs transition-all shadow-md shadow-sky-500/20 flex items-center justify-center space-x-2 cursor-pointer"
             >
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Verifying File...</span>
+                  <span>{loadingStep}</span>
                 </>
               ) : (
                 <span>Verify File</span>
@@ -182,41 +223,41 @@ export default function VerifyAssetPage() {
           <div className="space-y-6">
             {/* RESULT 1 — ORIGINAL */}
             {resultData.result === "AUTHENTIC" && (
-              <div className="p-6 rounded-xl bg-emerald-950/30 border border-emerald-500/30 space-y-5 shadow-xl">
+              <div className="p-6 rounded-xl bg-emerald-950/20 border border-emerald-500/30 space-y-5 shadow-xl">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
-                    <CheckCircle2 className="w-6 h-6" />
+                  <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+                    <CheckCircle2 className="w-7 h-7" />
                   </div>
                   <div>
                     <h2 className="text-lg font-bold text-white tracking-tight">
                       ✓ Original File Confirmed
                     </h2>
                     <p className="text-xs text-emerald-300">
-                      This file matches the original authenticity record.
+                      This file matches the registered authenticity record.
                     </p>
                   </div>
                 </div>
 
                 <div className="space-y-2 text-xs">
-                  <div className="p-3 rounded-lg bg-[#0D121A] border border-[#1E293B] flex justify-between items-center">
+                  <div className="p-3.5 rounded-lg bg-[#111A2A] border border-[#22304A] flex justify-between items-center">
                     <span className="text-[#94A3B8]">File Name:</span>
                     <span className="text-white font-semibold">
                       {resultData.asset?.assetName || resultData.asset?.fileName || file?.name}
                     </span>
                   </div>
                   {resultData.asset?.assetId && (
-                    <div className="p-3 rounded-lg bg-[#0D121A] border border-[#1E293B] flex justify-between items-center">
+                    <div className="p-3.5 rounded-lg bg-[#111A2A] border border-[#22304A] flex justify-between items-center">
                       <span className="text-[#94A3B8]">Asset ID:</span>
-                      <span className="text-cyan-400 font-mono font-bold">{resultData.asset.assetId}</span>
+                      <span className="text-sky-400 font-mono font-bold">{resultData.asset.assetId}</span>
                     </div>
                   )}
-                  <div className="p-3 rounded-lg bg-[#0D121A] border border-[#1E293B] flex justify-between items-center">
+                  <div className="p-3.5 rounded-lg bg-[#111A2A] border border-[#22304A] flex justify-between items-center">
                     <span className="text-[#94A3B8]">Verified On:</span>
                     <span className="text-slate-200">{formatDate(resultData.timestamp)}</span>
                   </div>
-                  <div className="p-3 rounded-lg bg-[#0D121A] border border-[#1E293B] flex justify-between items-center">
+                  <div className="p-3.5 rounded-lg bg-[#111A2A] border border-[#22304A] flex justify-between items-center">
                     <span className="text-[#94A3B8]">Status:</span>
-                    <span className="px-2.5 py-0.5 rounded text-[11px] font-medium bg-emerald-950/80 text-emerald-300 border border-emerald-500/30">
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-950/80 text-emerald-300 border border-emerald-500/30">
                       Original
                     </span>
                   </div>
@@ -226,15 +267,15 @@ export default function VerifyAssetPage() {
                   {resultData.asset?.assetId && (
                     <Link
                       to={`/assets/${resultData.asset.assetId}`}
-                      className="px-4 py-2.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-[#070A0F] font-semibold text-xs transition-colors flex items-center space-x-1.5"
+                      className="px-4 py-2.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-[#070B14] font-semibold text-xs transition-colors flex items-center space-x-1.5"
                     >
                       <Eye className="w-3.5 h-3.5" />
-                      <span>View Asset Details</span>
+                      <span>View Details</span>
                     </Link>
                   )}
                   <button
                     onClick={handleResetVerification}
-                    className="px-4 py-2.5 rounded-lg bg-[#111821] hover:bg-[#1E293B] text-white border border-[#1E293B] font-medium text-xs transition-colors flex items-center space-x-1.5"
+                    className="px-4 py-2.5 rounded-lg bg-[#111A2A] hover:bg-[#162238] text-white border border-[#22304A] font-medium text-xs transition-colors flex items-center space-x-1.5"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
                     <span>Try Another File</span>
@@ -242,7 +283,7 @@ export default function VerifyAssetPage() {
                 </div>
 
                 {/* Collapsible Technical Details */}
-                <div className="pt-2 border-t border-[#1E293B]/60">
+                <div className="pt-3 border-t border-[#22304A]">
                   <button
                     type="button"
                     onClick={() => setShowTechDetails(!showTechDetails)}
@@ -253,17 +294,23 @@ export default function VerifyAssetPage() {
                   </button>
 
                   {showTechDetails && (
-                    <div className="mt-3 p-4 rounded-lg bg-[#0D121A] border border-[#1E293B] space-y-3 text-xs">
+                    <div className="mt-3 p-4 rounded-lg bg-[#111A2A] border border-[#22304A] space-y-3 text-xs">
                       <div className="space-y-1">
-                        <span className="text-[#94A3B8] block text-[11px]">Submitted File Hash:</span>
-                        <code className="text-emerald-300 font-mono text-[11px] break-all block p-2 rounded bg-[#111821] border border-[#1E293B]">
+                        <div className="flex items-center space-x-1">
+                          <span className="text-[#94A3B8] text-[11px]">Submitted SHA-256 Hash:</span>
+                          <Tooltip text="A unique digital fingerprint generated from the file contents." />
+                        </div>
+                        <code className="text-emerald-300 font-mono text-[11px] break-all block p-2 rounded bg-[#0D1422] border border-[#22304A]">
                           {resultData.submittedHash}
                         </code>
                       </div>
 
                       <div className="space-y-1">
-                        <span className="text-[#94A3B8] block text-[11px]">Registered Hash:</span>
-                        <code className="text-emerald-300 font-mono text-[11px] break-all block p-2 rounded bg-[#111821] border border-[#1E293B]">
+                        <div className="flex items-center space-x-1">
+                          <span className="text-[#94A3B8] text-[11px]">Registered Hash:</span>
+                          <Tooltip text="The cryptographic fingerprint stored when the original file was registered." />
+                        </div>
+                        <code className="text-emerald-300 font-mono text-[11px] break-all block p-2 rounded bg-[#0D1422] border border-[#22304A]">
                           {resultData.storedHash}
                         </code>
                       </div>
@@ -273,9 +320,12 @@ export default function VerifyAssetPage() {
                         <span className="text-emerald-400 font-medium">Exact Match</span>
                       </div>
 
-                      <div className="flex justify-between">
-                        <span className="text-[#94A3B8]">Blockchain Status:</span>
-                        <span className="text-cyan-400 font-medium">{resultData.asset?.blockchainStatus || "CONFIRMED"}</span>
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center space-x-1">
+                          <span className="text-[#94A3B8]">Blockchain Status:</span>
+                          <Tooltip text="A tamper-resistant record used to preserve the authenticity information." />
+                        </div>
+                        <span className="text-sky-400 font-medium">{resultData.asset?.blockchainStatus || "CONFIRMED"}</span>
                       </div>
 
                       {resultData.asset?.network && (
@@ -288,7 +338,7 @@ export default function VerifyAssetPage() {
                       {resultData.asset?.contractAddress && (
                         <div className="space-y-1">
                           <span className="text-[#94A3B8] block text-[11px]">Contract Address:</span>
-                          <code className="text-cyan-300 font-mono text-[11px] break-all block p-2 rounded bg-[#111821] border border-[#1E293B]">
+                          <code className="text-sky-300 font-mono text-[11px] break-all block p-2 rounded bg-[#0D1422] border border-[#22304A]">
                             {resultData.asset.contractAddress}
                           </code>
                         </div>
@@ -297,7 +347,7 @@ export default function VerifyAssetPage() {
                       {resultData.asset?.transactionHash && (
                         <div className="space-y-1">
                           <span className="text-[#94A3B8] block text-[11px]">Transaction Hash:</span>
-                          <code className="text-cyan-300 font-mono text-[11px] break-all block p-2 rounded bg-[#111821] border border-[#1E293B]">
+                          <code className="text-sky-300 font-mono text-[11px] break-all block p-2 rounded bg-[#0D1422] border border-[#22304A]">
                             {resultData.asset.transactionHash}
                           </code>
                         </div>
@@ -310,10 +360,10 @@ export default function VerifyAssetPage() {
 
             {/* RESULT 2 — MODIFIED */}
             {resultData.result === "MODIFIED" && (
-              <div className="p-6 rounded-xl bg-amber-950/30 border border-amber-500/30 space-y-5 shadow-xl">
+              <div className="p-6 rounded-xl bg-amber-950/20 border border-amber-500/30 space-y-5 shadow-xl">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
-                    <AlertTriangle className="w-6 h-6" />
+                  <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
+                    <AlertTriangle className="w-7 h-7" />
                   </div>
                   <div>
                     <h2 className="text-lg font-bold text-white tracking-tight">
@@ -326,23 +376,23 @@ export default function VerifyAssetPage() {
                 </div>
 
                 <div className="space-y-2 text-xs">
-                  <div className="p-3 rounded-lg bg-[#0D121A] border border-[#1E293B] flex justify-between items-center">
-                    <span className="text-[#94A3B8]">File Name:</span>
+                  <div className="p-3.5 rounded-lg bg-[#111A2A] border border-[#22304A] flex justify-between items-center">
+                    <span className="text-[#94A3B8]">Submitted File:</span>
                     <span className="text-white font-semibold">{file?.name}</span>
                   </div>
                   {resultData.asset?.assetId && (
-                    <div className="p-3 rounded-lg bg-[#0D121A] border border-[#1E293B] flex justify-between items-center">
-                      <span className="text-[#94A3B8]">Asset ID:</span>
-                      <span className="text-cyan-400 font-mono font-bold">{resultData.asset.assetId}</span>
+                    <div className="p-3.5 rounded-lg bg-[#111A2A] border border-[#22304A] flex justify-between items-center">
+                      <span className="text-[#94A3B8]">Original Record Asset ID:</span>
+                      <span className="text-sky-400 font-mono font-bold">{resultData.asset.assetId}</span>
                     </div>
                   )}
-                  <div className="p-3 rounded-lg bg-[#0D121A] border border-[#1E293B] flex justify-between items-center">
-                    <span className="text-[#94A3B8]">Verified On:</span>
+                  <div className="p-3.5 rounded-lg bg-[#111A2A] border border-[#22304A] flex justify-between items-center">
+                    <span className="text-[#94A3B8]">Verification Time:</span>
                     <span className="text-slate-200">{formatDate(resultData.timestamp)}</span>
                   </div>
-                  <div className="p-3 rounded-lg bg-[#0D121A] border border-[#1E293B] flex justify-between items-center">
+                  <div className="p-3.5 rounded-lg bg-[#111A2A] border border-[#22304A] flex justify-between items-center">
                     <span className="text-[#94A3B8]">Status:</span>
-                    <span className="px-2.5 py-0.5 rounded text-[11px] font-medium bg-amber-950/80 text-amber-300 border border-amber-500/30">
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-amber-950/80 text-amber-300 border border-amber-500/30">
                       Modified
                     </span>
                   </div>
@@ -351,7 +401,7 @@ export default function VerifyAssetPage() {
                 <div className="pt-2">
                   <button
                     onClick={handleResetVerification}
-                    className="px-4 py-2.5 rounded-lg bg-[#111821] hover:bg-[#1E293B] text-white border border-[#1E293B] font-medium text-xs transition-colors flex items-center space-x-1.5"
+                    className="px-4 py-2.5 rounded-lg bg-[#111A2A] hover:bg-[#162238] text-white border border-[#22304A] font-medium text-xs transition-colors flex items-center space-x-1.5"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
                     <span>Try Another File</span>
@@ -359,7 +409,7 @@ export default function VerifyAssetPage() {
                 </div>
 
                 {/* Collapsible Technical Details */}
-                <div className="pt-2 border-t border-[#1E293B]/60">
+                <div className="pt-3 border-t border-[#22304A]">
                   <button
                     type="button"
                     onClick={() => setShowTechDetails(!showTechDetails)}
@@ -370,10 +420,10 @@ export default function VerifyAssetPage() {
                   </button>
 
                   {showTechDetails && (
-                    <div className="mt-3 p-4 rounded-lg bg-[#0D121A] border border-[#1E293B] space-y-3 text-xs">
+                    <div className="mt-3 p-4 rounded-lg bg-[#111A2A] border border-[#22304A] space-y-3 text-xs">
                       <div className="space-y-1">
                         <span className="text-[#94A3B8] block text-[11px]">Submitted File Hash:</span>
-                        <code className="text-amber-300 font-mono text-[11px] break-all block p-2 rounded bg-[#111821] border border-[#1E293B]">
+                        <code className="text-amber-300 font-mono text-[11px] break-all block p-2 rounded bg-[#0D1422] border border-[#22304A]">
                           {resultData.submittedHash}
                         </code>
                       </div>
@@ -381,7 +431,7 @@ export default function VerifyAssetPage() {
                       {resultData.storedHash && (
                         <div className="space-y-1">
                           <span className="text-[#94A3B8] block text-[11px]">Registered Original Hash:</span>
-                          <code className="text-cyan-300 font-mono text-[11px] break-all block p-2 rounded bg-[#111821] border border-[#1E293B]">
+                          <code className="text-sky-300 font-mono text-[11px] break-all block p-2 rounded bg-[#0D1422] border border-[#22304A]">
                             {resultData.storedHash}
                           </code>
                         </div>
@@ -399,17 +449,17 @@ export default function VerifyAssetPage() {
 
             {/* RESULT 3 — NOT REGISTERED */}
             {resultData.result === "NOT_REGISTERED" && (
-              <div className="p-6 rounded-xl bg-[#0D121A] border border-[#1E293B] space-y-5 shadow-xl">
+              <div className="p-6 rounded-xl bg-[#0D1422] border border-[#22304A] space-y-5 shadow-xl">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-300 shrink-0">
-                    <HelpCircle className="w-6 h-6" />
+                  <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center text-slate-300 shrink-0">
+                    <HelpCircle className="w-7 h-7" />
                   </div>
                   <div>
                     <h2 className="text-lg font-bold text-white tracking-tight">
                       ? File Not Registered
                     </h2>
                     <p className="text-xs text-[#94A3B8]">
-                      VerifyX could not find an authenticity record for this file.
+                      No authenticity record was found for this file.
                     </p>
                   </div>
                 </div>
@@ -417,21 +467,21 @@ export default function VerifyAssetPage() {
                 <div className="flex flex-wrap gap-3 pt-2">
                   <Link
                     to="/assets/register"
-                    className="px-4 py-2.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-[#070A0F] font-semibold text-xs transition-colors flex items-center space-x-1.5"
+                    className="px-4 py-2.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-[#070B14] font-semibold text-xs transition-colors flex items-center space-x-1.5"
                   >
                     <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                     <span>Register This File</span>
                   </Link>
                   <button
                     onClick={handleResetVerification}
-                    className="px-4 py-2.5 rounded-lg bg-[#111821] hover:bg-[#1E293B] text-white border border-[#1E293B] font-medium text-xs transition-colors"
+                    className="px-4 py-2.5 rounded-lg bg-[#111A2A] hover:bg-[#162238] text-white border border-[#22304A] font-medium text-xs transition-colors"
                   >
                     Try Another File
                   </button>
                 </div>
 
                 {/* Collapsible Technical Details */}
-                <div className="pt-2 border-t border-[#1E293B]/60">
+                <div className="pt-3 border-t border-[#22304A]">
                   <button
                     type="button"
                     onClick={() => setShowTechDetails(!showTechDetails)}
@@ -442,10 +492,10 @@ export default function VerifyAssetPage() {
                   </button>
 
                   {showTechDetails && (
-                    <div className="mt-3 p-4 rounded-lg bg-[#0D121A] border border-[#1E293B] space-y-2 text-xs">
+                    <div className="mt-3 p-4 rounded-lg bg-[#111A2A] border border-[#22304A] space-y-2 text-xs">
                       <div className="space-y-1">
                         <span className="text-[#94A3B8] block text-[11px]">Submitted File Hash:</span>
-                        <code className="text-slate-300 font-mono text-[11px] break-all block p-2 rounded bg-[#111821] border border-[#1E293B]">
+                        <code className="text-slate-300 font-mono text-[11px] break-all block p-2 rounded bg-[#0D1422] border border-[#22304A]">
                           {resultData.submittedHash}
                         </code>
                       </div>
