@@ -72,14 +72,8 @@ export default function VerifyAssetPage() {
       });
 
       if (res.data && res.data.success) {
-        setLoadingStep("Checking authenticity record...");
-        setTimeout(() => {
-          setLoadingStep("Preparing result...");
-          setTimeout(() => {
-            setResultData(res.data);
-            setLoading(false);
-          }, 300);
-        }, 300);
+        setResultData(res.data);
+        setLoading(false);
       } else {
         setError(res.data?.message || "Failed to execute asset verification.");
         setLoading(false);
@@ -106,13 +100,19 @@ export default function VerifyAssetPage() {
 
   const formatDate = (dateString) => {
     if (!dateString) return "—";
-    return new Date(dateString).toLocaleString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "—";
+      return date.toLocaleString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch (e) {
+      return "—";
+    }
   };
 
   return (

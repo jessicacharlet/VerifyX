@@ -77,11 +77,8 @@ export default function RegisterAssetPage() {
       });
 
       if (res.data && res.data.success) {
-        setLoadingStep("Securing file...");
-        setTimeout(() => {
-          setSuccessResult(res.data);
-          setLoading(false);
-        }, 400);
+        setSuccessResult(res.data);
+        setLoading(false);
       } else {
         setError(res.data?.message || "Asset registration failed.");
         setLoading(false);
@@ -108,14 +105,22 @@ export default function RegisterAssetPage() {
 
   const formatDate = (dateString) => {
     if (!dateString) return "—";
-    return new Date(dateString).toLocaleString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "—";
+      return date.toLocaleString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch (e) {
+      return "—";
+    }
   };
+
+  const registeredAsset = successResult?.asset || {};
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 space-y-6 font-sans animate-fadeIn">
@@ -168,18 +173,20 @@ export default function RegisterAssetPage() {
               <div className="p-3.5 rounded-lg bg-[#111A2A] border border-[#22304A] flex justify-between items-center">
                 <span className="text-[#94A3B8]">File Name:</span>
                 <span className="text-white font-semibold">
-                  {successResult.asset.assetName || successResult.asset.fileName}
+                  {registeredAsset.assetName || registeredAsset.fileName || file?.name || "Digital Asset"}
                 </span>
               </div>
 
-              <div className="p-3.5 rounded-lg bg-[#111A2A] border border-[#22304A] flex justify-between items-center">
-                <span className="text-[#94A3B8]">Asset ID:</span>
-                <span className="text-sky-400 font-mono font-bold">{successResult.asset.assetId}</span>
-              </div>
+              {registeredAsset.assetId && (
+                <div className="p-3.5 rounded-lg bg-[#111A2A] border border-[#22304A] flex justify-between items-center">
+                  <span className="text-[#94A3B8]">Asset ID:</span>
+                  <span className="text-sky-400 font-mono font-bold">{registeredAsset.assetId}</span>
+                </div>
+              )}
 
               <div className="p-3.5 rounded-lg bg-[#111A2A] border border-[#22304A] flex justify-between items-center">
                 <span className="text-[#94A3B8]">Registered Date:</span>
-                <span className="text-slate-200">{formatDate(successResult.asset.createdAt)}</span>
+                <span className="text-slate-200">{formatDate(registeredAsset.createdAt || new Date())}</span>
               </div>
 
               <div className="p-3.5 rounded-lg bg-[#111A2A] border border-[#22304A] flex justify-between items-center">
@@ -192,13 +199,15 @@ export default function RegisterAssetPage() {
 
             {/* Action Buttons */}
             <div className="flex flex-wrap gap-3 pt-2">
-              <Link
-                to={`/assets/${successResult.asset.assetId}`}
-                className="px-4 py-2.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-[#070B14] font-semibold text-xs transition-colors flex items-center space-x-1.5"
-              >
-                <Eye className="w-3.5 h-3.5" />
-                <span>View Asset</span>
-              </Link>
+              {registeredAsset.assetId && (
+                <Link
+                  to={`/assets/${registeredAsset.assetId}`}
+                  className="px-4 py-2.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-[#070B14] font-semibold text-xs transition-colors flex items-center space-x-1.5"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>View Asset</span>
+                </Link>
+              )}
               <Link
                 to="/verify"
                 className="px-4 py-2.5 rounded-lg bg-[#111A2A] hover:bg-[#162238] text-white border border-[#22304A] font-semibold text-xs transition-colors flex items-center space-x-1.5"
@@ -227,45 +236,49 @@ export default function RegisterAssetPage() {
 
               {showTechDetails && (
                 <div className="mt-3 p-4 rounded-lg bg-[#111A2A] border border-[#22304A] space-y-3 text-xs">
-                  <div className="space-y-1">
-                    <div className="flex items-center space-x-1">
-                      <span className="text-[#94A3B8] text-[11px]">SHA-256 Hash:</span>
-                      <Tooltip text="A unique digital fingerprint generated from the file contents." />
+                  {registeredAsset.sha256Hash && (
+                    <div className="space-y-1">
+                      <div className="flex items-center space-x-1">
+                        <span className="text-[#94A3B8] text-[11px]">SHA-256 Hash:</span>
+                        <Tooltip text="A unique digital fingerprint generated from the file contents." />
+                      </div>
+                      <code className="text-emerald-300 font-mono text-[11px] break-all block p-2 rounded bg-[#0D1422] border border-[#22304A]">
+                        {registeredAsset.sha256Hash}
+                      </code>
                     </div>
-                    <code className="text-emerald-300 font-mono text-[11px] break-all block p-2 rounded bg-[#0D1422] border border-[#22304A]">
-                      {successResult.asset.sha256Hash}
-                    </code>
-                  </div>
+                  )}
 
                   <div className="flex justify-between items-center">
                     <div className="flex items-center space-x-1">
                       <span className="text-[#94A3B8]">Blockchain Status:</span>
                       <Tooltip text="A tamper-resistant record used to preserve the authenticity information." />
                     </div>
-                    <span className="text-sky-400 font-medium">{successResult.asset.blockchainStatus || "CONFIRMED"}</span>
+                    <span className="text-sky-400 font-medium">
+                      {registeredAsset.blockchainStatus || successResult?.blockchain?.status || "PENDING"}
+                    </span>
                   </div>
 
-                  {successResult.asset.network && (
+                  {registeredAsset.network && (
                     <div className="flex justify-between">
                       <span className="text-[#94A3B8]">Network:</span>
-                      <span className="text-slate-200">{successResult.asset.network}</span>
+                      <span className="text-slate-200">{registeredAsset.network}</span>
                     </div>
                   )}
 
-                  {successResult.asset.contractAddress && (
+                  {registeredAsset.contractAddress && (
                     <div className="space-y-1">
                       <span className="text-[#94A3B8] block text-[11px]">Contract Address:</span>
                       <code className="text-sky-300 font-mono text-[11px] break-all block p-2 rounded bg-[#0D1422] border border-[#22304A]">
-                        {successResult.asset.contractAddress}
+                        {registeredAsset.contractAddress}
                       </code>
                     </div>
                   )}
 
-                  {successResult.asset.transactionHash && (
+                  {registeredAsset.transactionHash && (
                     <div className="space-y-1">
                       <span className="text-[#94A3B8] block text-[11px]">Transaction Hash:</span>
                       <code className="text-sky-300 font-mono text-[11px] break-all block p-2 rounded bg-[#0D1422] border border-[#22304A]">
-                        {successResult.asset.transactionHash}
+                        {registeredAsset.transactionHash}
                       </code>
                     </div>
                   )}
