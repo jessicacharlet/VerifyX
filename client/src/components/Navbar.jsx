@@ -178,25 +178,97 @@ export default function Navbar() {
 
       {/* Mobile Drawer Navigation */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-[#0D1422] border-b border-[#22304A] px-4 pt-3 pb-5 space-y-2 text-xs font-sans">
-          <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-lg font-medium text-white hover:bg-[#111A2A]">
+        <div className="lg:hidden bg-[#0D1422] border-b border-[#22304A] px-4 pt-3 pb-5 space-y-2 text-xs font-sans animate-fadeIn">
+          <Link
+            to="/dashboard"
+            onClick={() => setMobileMenuOpen(false)}
+            className={`block px-3.5 py-2.5 rounded-lg font-medium transition-colors ${
+              isActive("/dashboard") ? "text-sky-400 bg-sky-500/10 border border-sky-500/30" : "text-white hover:bg-[#111A2A]"
+            }`}
+          >
             Dashboard
           </Link>
-          <Link to="/assets" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-lg font-medium text-white hover:bg-[#111A2A]">
+          <Link
+            to="/assets"
+            onClick={() => setMobileMenuOpen(false)}
+            className={`block px-3.5 py-2.5 rounded-lg font-medium transition-colors ${
+              isActive("/assets") ? "text-sky-400 bg-sky-500/10 border border-sky-500/30" : "text-white hover:bg-[#111A2A]"
+            }`}
+          >
             Assets
           </Link>
-          <Link to="/assets/register" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-lg font-medium text-sky-400 hover:bg-[#111A2A]">
-            Register Asset
+          <Link
+            to="/assets/register"
+            onClick={() => setMobileMenuOpen(false)}
+            className={`block px-3.5 py-2.5 rounded-lg font-medium transition-colors ${
+              isActive("/assets/register") ? "text-sky-400 bg-sky-500/10 border border-sky-500/30" : "text-sky-400 hover:bg-[#111A2A]"
+            }`}
+          >
+            + Register Asset
           </Link>
-          <Link to="/verify" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-lg font-medium text-white hover:bg-[#111A2A]">
+          <Link
+            to="/verify"
+            onClick={() => setMobileMenuOpen(false)}
+            className={`block px-3.5 py-2.5 rounded-lg font-medium transition-colors ${
+              isActive("/verify") ? "text-sky-400 bg-sky-500/10 border border-sky-500/30" : "text-white hover:bg-[#111A2A]"
+            }`}
+          >
             Verify Asset
           </Link>
-          <Link to="/verification-history" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-lg font-medium text-[#94A3B8] hover:bg-[#111A2A]">
+          <Link
+            to="/verification-history"
+            onClick={() => setMobileMenuOpen(false)}
+            className={`block px-3.5 py-2.5 rounded-lg font-medium transition-colors ${
+              isActive("/verification-history") ? "text-sky-400 bg-sky-500/10 border border-sky-500/30" : "text-[#94A3B8] hover:bg-[#111A2A]"
+            }`}
+          >
             Verification History
           </Link>
-          <Link to="/profile" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-lg font-medium text-sky-400 hover:bg-[#111A2A]">
-            User Profile
-          </Link>
+
+          <div className="pt-3 border-t border-[#22304A]">
+            {user ? (
+              <div className="space-y-2">
+                <Link
+                  to="/profile"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center space-x-3 px-3.5 py-2.5 rounded-lg bg-[#111A2A] border border-[#22304A]"
+                >
+                  <UserCheck className="w-4 h-4 text-sky-400" />
+                  <div>
+                    <div className="font-semibold text-white">{user.name}</div>
+                    <div className="text-[11px] text-[#94A3B8]">{user.email}</div>
+                  </div>
+                </Link>
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="w-full flex items-center justify-center space-x-2 px-3.5 py-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 font-semibold transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <Link
+                  to="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-center px-3.5 py-2.5 rounded-lg bg-[#111A2A] text-white border border-[#22304A] font-semibold text-center"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  to="/register"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-center px-3.5 py-2.5 rounded-lg bg-gradient-to-r from-sky-400 to-blue-500 text-[#070B14] font-bold text-center"
+                >
+                  Create Account
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </nav>
