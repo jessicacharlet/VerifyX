@@ -85,6 +85,16 @@ export default function RegisterAssetPage() {
       }
     } catch (err) {
       console.error("Register Asset Submit Error:", err);
+      if (err.response?.data?.isDuplicate && err.response?.data?.asset) {
+        setSuccessResult({
+          success: true,
+          isDuplicate: true,
+          asset: err.response.data.asset,
+          message: err.response.data.message,
+        });
+        setLoading(false);
+        return;
+      }
       const serverErrMsg =
         err.response?.data?.message ||
         err.response?.data?.error ||
@@ -121,6 +131,7 @@ export default function RegisterAssetPage() {
   };
 
   const registeredAsset = successResult?.asset || {};
+  const isDuplicateRecord = Boolean(successResult?.isDuplicate);
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 space-y-6 font-sans animate-fadeIn">
@@ -152,19 +163,21 @@ export default function RegisterAssetPage() {
           </div>
         )}
 
-        {/* Success Confirmation Card */}
+        {/* Success / Duplicate Confirmation Card */}
         {successResult ? (
-          <div className="p-6 rounded-xl bg-emerald-950/20 border border-emerald-500/30 space-y-5 shadow-xl">
+          <div className={`p-6 rounded-xl space-y-5 shadow-xl ${isDuplicateRecord ? 'bg-sky-950/30 border border-sky-500/40' : 'bg-emerald-950/20 border border-emerald-500/30'}`}>
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${isDuplicateRecord ? 'bg-sky-500/20 text-sky-400' : 'bg-emerald-500/20 text-emerald-400'}`}>
                 <CheckCircle className="w-6 h-6" />
               </div>
               <div>
                 <h2 className="text-lg font-bold text-white tracking-tight">
-                  ✓ Asset Registered Successfully
+                  {isDuplicateRecord ? "✓ File Already Registered & Protected" : "✓ Asset Registered Successfully"}
                 </h2>
-                <p className="text-xs text-emerald-300">
-                  Your file is now registered and can be verified later.
+                <p className={`text-xs ${isDuplicateRecord ? 'text-sky-300' : 'text-emerald-300'}`}>
+                  {isDuplicateRecord
+                    ? "This document content already matches an existing registered record."
+                    : "Your file is now registered and can be verified later."}
                 </p>
               </div>
             </div>
