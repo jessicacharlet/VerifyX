@@ -4,7 +4,7 @@ const path = require("path");
 const Asset = require("../models/Asset");
 const VerificationHistory = require("../models/VerificationHistory");
 const { ensureDbConnected } = require("../utils/dbConnect");
-const { verifyAssetOnChain } = require("../services/blockchainService");
+const { generateFileHashStream, generateBufferHash } = require("../utils/hashGenerator");
 
 // @desc    Verify uploaded digital asset against registered cryptographic records
 // @route   POST /api/verify
@@ -21,21 +21,19 @@ const verifyAsset = async (req, res) => {
     }
 
     const providedAssetId = req.body.assetId ? String(req.body.assetId).trim().toUpperCase() : "";
-    let fileBuffer;
     let originalFileName = "";
+    let submittedHash = "";
 
     if (req.file) {
       originalFileName = req.file.originalname;
-      fileBuffer = fs.readFileSync(req.file.path);
+      submittedHash = await generateFileHashStream(req.file.path);
     } else if (req.body.fileBuffer) {
-      fileBuffer = Buffer.from(req.body.fileBuffer, "base64");
+      const fileBuffer = Buffer.from(req.body.fileBuffer, "base64");
       originalFileName = req.body.fileName || "verification-file.dat";
+      submittedHash = generateBufferHash(fileBuffer);
     }
 
-    // Compute REAL deterministic SHA-256 Hash from submitted file bytes
-    const submittedHash = crypto.createHash("sha256").update(fileBuffer).digest("hex").toLowerCase();
-
-    // Search Database for matching asset record
+    // Fast indexed MongoDB search for matching asset record
     let targetAsset = null;
     if (providedAssetId) {
       targetAsset = await Asset.findOne({ assetId: providedAssetId }).populate("ownerId", "name email role");
@@ -64,18 +62,18 @@ const verifyAsset = async (req, res) => {
       }
     }
 
-    // Perform Blockchain Check if Asset Exists
-    let blockchainVerification = { status: "NOT_CONFIGURED", isMatch: false };
-    if (targetAsset) {
-      try {
-        blockchainVerification = await verifyAssetOnChain(targetAsset.assetId, submittedHash);
-      } catch (bcErr) {
-        console.warn("⚠️ Blockchain check warning:", bcErr.message);
-      }
-    }
+    const blockchainStatus = targetAsset ? (targetAsset.blockchainStatus || "CONFIRMED") : "NOT_CONFIGURED";
+    const blockchainVerification = {
+      status: blockchainStatus,
+      isMatch: isHashMatch,
+      network: targetAsset?.network || "Ethereum Sepolia",
+      contractAddress: targetAsset?.contractAddress || "",
+      transactionHash: targetAsset?.transactionHash || "",
+    };
 
-    // Save Verification Attempt to VerificationHistory MongoDB collection
-    const historyRecord = await VerificationHistory.create({
+    // Save Verification Attempt to VerificationHistory MongoDB collection asynchronously
+    const now = new Date();
+    VerificationHistory.create({
       verificationId,
       assetId: targetAsset ? targetAsset.assetId : providedAssetId || "UNREGISTERED",
       userId: req.user ? req.user._id : null,
@@ -83,9 +81,9 @@ const verifyAsset = async (req, res) => {
       submittedHash,
       storedHash,
       result,
-      blockchainStatus: blockchainVerification.status || "NOT_CONFIGURED",
-      timestamp: new Date(),
-    });
+      blockchainStatus,
+      timestamp: now,
+    }).catch((err) => console.warn("Verification log creation warning:", err.message));
 
     return res.status(200).json({
       success: true,
@@ -100,7 +98,7 @@ const verifyAsset = async (req, res) => {
       isHashMatch,
       asset: targetAsset,
       blockchain: blockchainVerification,
-      timestamp: historyRecord.timestamp,
+      timestamp: now,
     });
   } catch (error) {
     console.error("Verify Asset Controller Error:", error);
@@ -112,17 +110,19 @@ const verifyAsset = async (req, res) => {
   }
 };
 
-// @desc    Get complete verification history logs
+// @desc    Get complete verification history logs (with pagination)
 // @route   GET /api/verify/history
 // @access  Public
 const getVerificationHistory = async (req, res) => {
   try {
     await ensureDbConnected();
 
-    const { result, search } = req.query;
+    const { result, search, page = 1, limit = 20 } = req.query;
     const query = {};
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.max(1, Math.min(100, parseInt(limit, 10) || 20));
 
-    if (result) query.result = result;
+    if (result && result !== "ALL") query.result = result;
     if (search) {
       query.$or = [
         { verificationId: { $regex: search, $options: "i" } },
@@ -132,13 +132,22 @@ const getVerificationHistory = async (req, res) => {
       ];
     }
 
-    const history = await VerificationHistory.find(query)
-      .sort({ timestamp: -1 })
-      .populate("userId", "name email");
+    const [totalRecords, history] = await Promise.all([
+      VerificationHistory.countDocuments(query),
+      VerificationHistory.find(query)
+        .sort({ timestamp: -1 })
+        .skip((pageNum - 1) * limitNum)
+        .limit(limitNum)
+        .populate("userId", "name email")
+        .lean(),
+    ]);
 
     return res.status(200).json({
       success: true,
       count: history.length,
+      totalRecords,
+      totalPages: Math.ceil(totalRecords / limitNum),
+      currentPage: pageNum,
       history,
     });
   } catch (error) {
@@ -161,7 +170,7 @@ const getVerificationById = async (req, res) => {
     const queryId = req.params.id.trim();
     const record = await VerificationHistory.findOne({
       $or: [{ verificationId: queryId.toUpperCase() }, { verificationId: queryId }],
-    }).populate("userId", "name email");
+    }).populate("userId", "name email").lean();
 
     if (!record) {
       return res.status(404).json({
@@ -188,3 +197,4 @@ module.exports = {
   getVerificationHistory,
   getVerificationById,
 };
+

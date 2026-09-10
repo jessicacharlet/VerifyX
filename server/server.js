@@ -9,6 +9,12 @@ const assetRoutes = require("./routes/assetRoutes");
 const verifyRoutes = require("./routes/verifyRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const blockchainRoutes = require("./routes/blockchainRoutes");
+const productRoutes = require("./routes/productRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+const orderRoutes = require("./routes/orderRoutes");
+const scanRoutes = require("./routes/scanRoutes");
+const issueRoutes = require("./routes/issueRoutes");
+const shipmentRoutes = require("./routes/shipmentRoutes");
 
 const app = express();
 
@@ -30,12 +36,18 @@ mongoose.set("bufferCommands", false);
 const uploadsPath = path.join(__dirname, "./uploads");
 app.use("/uploads", express.static(uploadsPath));
 
-// Digital Asset API Routes
+// API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/assets", assetRoutes);
 app.use("/api/verify", verifyRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/blockchain", blockchainRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/scans", scanRoutes);
+app.use("/api/issues", issueRoutes);
+app.use("/api/shipments", shipmentRoutes);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
@@ -50,7 +62,7 @@ app.get("/api/health", (req, res) => {
 
 // Global Error Handler
 app.use((err, req, res, next) => {
-  console.error("Unhandled Server Error:", err);
+  console.error("Unhandled Server Error:", err.message);
   res.status(err.status || 500).json({
     success: false,
     message: err.message || "Internal Server Error",
@@ -61,7 +73,13 @@ const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/verimark";
 
 mongoose
-  .connect(MONGO_URI, { serverSelectionTimeoutMS: 5000, bufferCommands: false })
+  .connect(MONGO_URI, {
+    maxPoolSize: 10,
+    minPoolSize: 2,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+    bufferCommands: false,
+  })
   .then(() => {
     console.log("✅ MongoDB connected successfully to database: verimark");
     if (process.env.NODE_ENV !== "production") {
@@ -80,3 +98,4 @@ mongoose
   });
 
 module.exports = app;
+

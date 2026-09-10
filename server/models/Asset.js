@@ -13,6 +13,7 @@ const assetSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
     },
     assetName: {
       type: String,
@@ -26,6 +27,7 @@ const assetSchema = new mongoose.Schema(
     fileType: {
       type: String,
       required: true,
+      index: true,
     },
     fileSize: {
       type: Number,
@@ -45,6 +47,7 @@ const assetSchema = new mongoose.Schema(
       type: String,
       enum: ["PENDING", "CONFIRMED", "FAILED", "NOT_CONFIGURED"],
       default: "NOT_CONFIGURED",
+      index: true,
     },
     transactionHash: {
       type: String,
@@ -67,5 +70,8 @@ const assetSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+assetSchema.index({ ownerId: 1, sha256Hash: 1 });
+assetSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model("Asset", assetSchema);

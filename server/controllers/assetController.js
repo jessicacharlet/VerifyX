@@ -5,6 +5,7 @@ const Asset = require("../models/Asset");
 const User = require("../models/User");
 const { ensureDbConnected } = require("../utils/dbConnect");
 const { registerAssetOnChain } = require("../services/blockchainService");
+const { generateFileHashStream, generateBufferHash } = require("../utils/hashGenerator");
 
 // @desc    Register a new Digital Asset (Upload File, Compute SHA-256 Hash, Save to MongoDB & Ethereum)
 // @route   POST /api/assets/register
@@ -21,33 +22,31 @@ const registerAsset = async (req, res) => {
     }
 
     const assetNameInput = req.body.assetName ? String(req.body.assetName).trim() : "";
-    let fileBuffer;
     let originalFileName = "";
     let mimeType = "";
     let fileSize = 0;
     let savedStoragePath = "";
+    let sha256Hash = "";
 
     if (req.file) {
       originalFileName = req.file.originalname;
       mimeType = req.file.mimetype || path.extname(req.file.originalname);
       fileSize = req.file.size;
       savedStoragePath = req.file.path;
-      fileBuffer = fs.readFileSync(req.file.path);
+      // High performance stream-based hash generation without loading entire file into RAM
+      sha256Hash = await generateFileHashStream(req.file.path);
     } else if (req.body.fileBuffer) {
-      // Direct base64/buffer payload fallback
-      fileBuffer = Buffer.from(req.body.fileBuffer, "base64");
+      const fileBuffer = Buffer.from(req.body.fileBuffer, "base64");
       originalFileName = req.body.fileName || "digital-asset.dat";
       mimeType = req.body.fileType || "application/octet-stream";
       fileSize = fileBuffer.length;
+      sha256Hash = generateBufferHash(fileBuffer);
     }
-
-    // Compute REAL deterministic SHA-256 Hash from raw file bytes
-    const sha256Hash = crypto.createHash("sha256").update(fileBuffer).digest("hex").toLowerCase();
 
     // Determine Owner ID (from JWT user or default fallback)
     let ownerId = req.user ? req.user._id : null;
     if (!ownerId) {
-      const defaultUser = await User.findOne({});
+      const defaultUser = await User.findOne({}).select("_id").lean();
       if (defaultUser) ownerId = defaultUser._id;
     }
 
@@ -59,7 +58,7 @@ const registerAsset = async (req, res) => {
     }
 
     // Check for exact duplicate asset registered by the same owner
-    const existingAsset = await Asset.findOne({ ownerId, sha256Hash });
+    const existingAsset = await Asset.findOne({ ownerId, sha256Hash }).lean();
     if (existingAsset) {
       return res.status(400).json({
         success: false,
@@ -70,21 +69,11 @@ const registerAsset = async (req, res) => {
     }
 
     // Generate unique Asset ID (e.g., AST-749201)
-    let assetId = "";
-    let isUnique = false;
-    let attempts = 0;
-
-    while (!isUnique && attempts < 5) {
-      const randomNum = Math.floor(100000 + Math.random() * 900000);
-      assetId = `AST-${randomNum}`;
-      const exists = await Asset.findOne({ assetId });
-      if (!exists) isUnique = true;
-      attempts++;
-    }
-
+    const randomNum = Math.floor(100000 + Math.random() * 900000);
+    const assetId = `AST-${randomNum}`;
     const finalAssetName = assetNameInput || originalFileName;
 
-    // 1. Save Digital Asset Record to MongoDB
+    // 1. Save Digital Asset Record to MongoDB immediately
     const asset = await Asset.create({
       assetId,
       ownerId,
@@ -97,27 +86,20 @@ const registerAsset = async (req, res) => {
       blockchainStatus: "PENDING",
     });
 
-    console.log(`✅ Asset ${assetId} created with SHA-256: ${sha256Hash}`);
+    // 2. Trigger On-Chain Blockchain registration asynchronously in the background (Non-blocking)
+    registerAssetOnChain(assetId, sha256Hash).catch((bcErr) => {
+      console.warn("⚠️ Background blockchain registration warning:", bcErr.message);
+    });
 
-    // 2. Register SHA-256 Hash on Ethereum Smart Contract / Blockchain Service
-    let bcResult = { status: "NOT_CONFIGURED", transactionHash: "" };
-    try {
-      bcResult = await registerAssetOnChain(assetId, sha256Hash);
-      asset.blockchainStatus = bcResult.status;
-      asset.transactionHash = bcResult.transactionHash || "";
-      asset.blockNumber = bcResult.blockNumber || null;
-      asset.contractAddress = bcResult.contractAddress || "";
-      asset.network = bcResult.network || "Ethereum";
-      await asset.save();
-    } catch (bcErr) {
-      console.warn("⚠️ On-chain registration warning:", bcErr.message);
-    }
-
+    // Return instant success response to client
     return res.status(201).json({
       success: true,
       message: `Digital asset '${finalAssetName}' registered successfully with Asset ID ${assetId}.`,
       asset,
-      blockchain: bcResult,
+      blockchain: {
+        status: "PENDING",
+        message: "Blockchain transaction queued for background execution.",
+      },
     });
   } catch (error) {
     console.error("Register Asset Error:", error);
@@ -153,7 +135,8 @@ const getAssets = async (req, res) => {
 
     const assets = await Asset.find(query)
       .sort({ createdAt: -1 })
-      .populate("ownerId", "name email role");
+      .populate("ownerId", "name email role")
+      .lean();
 
     return res.status(200).json({
       success: true,
@@ -212,3 +195,4 @@ module.exports = {
   getAssets,
   getAssetById,
 };
+

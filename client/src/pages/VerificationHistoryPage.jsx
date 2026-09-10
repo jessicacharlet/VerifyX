@@ -15,26 +15,32 @@ export default function VerificationHistoryPage() {
   const [search, setSearch] = useState("");
   const [resultFilter, setResultFilter] = useState(filterQuery);
   const [expandedId, setExpandedId] = useState(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalRecords, setTotalRecords] = useState(0);
 
   useEffect(() => {
     setResultFilter(filterQuery);
+    setPage(1);
   }, [filterQuery]);
 
   useEffect(() => {
     fetchHistory();
-  }, [resultFilter]);
+  }, [resultFilter, page]);
 
   const fetchHistory = async () => {
     try {
       setLoading(true);
       setError("");
-      const params = {};
+      const params = { page, limit: 20 };
       if (search) params.search = search;
       if (resultFilter !== "ALL") params.result = resultFilter;
 
       const res = await API.get("/verify/history", { params });
       if (res.data && res.data.history) {
         setHistory(res.data.history);
+        if (res.data.totalPages) setTotalPages(res.data.totalPages);
+        if (res.data.totalRecords !== undefined) setTotalRecords(res.data.totalRecords);
       }
     } catch (err) {
       console.error("Fetch verification history error:", err);
@@ -46,11 +52,13 @@ export default function VerificationHistoryPage() {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
+    setPage(1);
     fetchHistory();
   };
 
   const handleFilterChange = (key) => {
     setResultFilter(key);
+    setPage(1);
     if (key === "ALL") {
       searchParams.delete("filter");
     } else {
@@ -79,7 +87,7 @@ export default function VerificationHistoryPage() {
             Verification History
           </h1>
           <p className="text-xs sm:text-sm text-[#94A3B8]">
-            Review previous verification activity and search records.
+            Review previous verification activity and search records. ({totalRecords} records logged)
           </p>
         </div>
       </div>
@@ -135,7 +143,7 @@ export default function VerificationHistoryPage() {
           </p>
         </div>
       ) : (
-        <div className="bg-[#0D1422] rounded-xl border border-[#22304A] overflow-hidden shadow-md">
+        <div className="bg-[#0D1422] rounded-xl border border-[#22304A] overflow-hidden shadow-md space-y-4 pb-4">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-[#111A2A] text-[#94A3B8] border-b border-[#22304A] font-medium">
@@ -218,8 +226,35 @@ export default function VerificationHistoryPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination Bar */}
+          {totalPages > 1 && (
+            <div className="px-6 pt-2 flex items-center justify-between text-xs text-[#94A3B8]">
+              <div>
+                Page <span className="text-white font-semibold">{page}</span> of{" "}
+                <span className="text-white font-semibold">{totalPages}</span>
+              </div>
+              <div className="flex space-x-2">
+                <button
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  className="px-3 py-1.5 rounded-lg bg-[#111A2A] hover:bg-[#162238] disabled:opacity-40 text-white border border-[#22304A] font-medium transition-colors"
+                >
+                  Previous
+                </button>
+                <button
+                  disabled={page >= totalPages}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  className="px-3 py-1.5 rounded-lg bg-[#111A2A] hover:bg-[#162238] disabled:opacity-40 text-white border border-[#22304A] font-medium transition-colors"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
   );
 }
+

@@ -3,6 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const BlockchainRecord = require("../models/BlockchainRecord");
+const Asset = require("../models/Asset");
 
 let contractInstance = null;
 let providerInstance = null;
@@ -56,6 +57,11 @@ async function registerAssetOnChain(assetId, sha256Hash) {
       timestamp: new Date(),
     });
 
+    await Asset.findOneAndUpdate(
+      { assetId },
+      { blockchainStatus: "NOT_CONFIGURED" }
+    ).catch(() => {});
+
     return {
       connected: false,
       status: "NOT_CONFIGURED",
@@ -82,6 +88,17 @@ async function registerAssetOnChain(assetId, sha256Hash) {
       timestamp: new Date(),
     });
 
+    await Asset.findOneAndUpdate(
+      { assetId },
+      {
+        blockchainStatus: "CONFIRMED",
+        transactionHash: receipt.hash,
+        blockNumber: receipt.blockNumber,
+        contractAddress: contract.target || "",
+        network: process.env.BLOCKCHAIN_NETWORK || "Ethereum Sepolia",
+      }
+    ).catch(() => {});
+
     return {
       connected: true,
       status: "CONFIRMED",
@@ -103,6 +120,11 @@ async function registerAssetOnChain(assetId, sha256Hash) {
       status: "FAILED",
       timestamp: new Date(),
     });
+
+    await Asset.findOneAndUpdate(
+      { assetId },
+      { blockchainStatus: "FAILED" }
+    ).catch(() => {});
 
     return {
       connected: false,
@@ -143,3 +165,4 @@ module.exports = {
   registerAssetOnChain,
   verifyAssetOnChain,
 };
+

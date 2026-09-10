@@ -96,8 +96,57 @@ const getRecentVerifications = async (req, res) => {
   }
 };
 
+// @desc    Get complete unified dashboard summary (stats + recent assets + recent verifications in 1 roundtrip)
+// @route   GET /api/dashboard or GET /api/dashboard/summary
+// @access  Public
+const getDashboardSummary = async (req, res) => {
+  try {
+    await ensureDbConnected();
+
+    const [
+      totalRegisteredAssets,
+      authenticVerifications,
+      modifiedAssets,
+      notRegisteredCount,
+      blockchainRegisteredCount,
+      recentAssets,
+      recentVerifications,
+    ] = await Promise.all([
+      Asset.countDocuments(),
+      VerificationHistory.countDocuments({ result: "AUTHENTIC" }),
+      VerificationHistory.countDocuments({ result: "MODIFIED" }),
+      VerificationHistory.countDocuments({ result: "NOT_REGISTERED" }),
+      BlockchainRecord.countDocuments({ status: "CONFIRMED" }),
+      Asset.find().sort({ createdAt: -1 }).limit(6).populate("ownerId", "name email").lean(),
+      VerificationHistory.find().sort({ timestamp: -1 }).limit(6).populate("userId", "name email").lean(),
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      stats: {
+        totalRegisteredAssets,
+        authenticVerifications,
+        modifiedAssets,
+        notRegisteredCount,
+        blockchainRegisteredCount,
+      },
+      assets: recentAssets,
+      verifications: recentVerifications,
+    });
+  } catch (error) {
+    console.error("Get Dashboard Summary Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to load dashboard summary.",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
+  getDashboardSummary,
   getDashboardStats,
   getRecentAssets,
   getRecentVerifications,
 };
+

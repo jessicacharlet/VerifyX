@@ -39,20 +39,21 @@ export default function DashboardPage() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const [statsRes, assetsRes, verifRes] = await Promise.all([
-        API.get("/dashboard/stats"),
-        API.get("/dashboard/recent-assets"),
-        API.get("/dashboard/recent-verifications"),
-      ]);
-
-      if (statsRes.data && statsRes.data.stats) {
-        setStats(statsRes.data.stats);
-      }
-      if (assetsRes.data && assetsRes.data.assets) {
-        setRecentAssets(assetsRes.data.assets);
-      }
-      if (verifRes.data && verifRes.data.verifications) {
-        setRecentVerifications(verifRes.data.verifications);
+      const res = await API.get("/dashboard");
+      if (res.data && res.data.success) {
+        if (res.data.stats) setStats(res.data.stats);
+        if (res.data.assets) setRecentAssets(res.data.assets);
+        if (res.data.verifications) setRecentVerifications(res.data.verifications);
+      } else {
+        // Fallback parallel fetch if legacy response
+        const [statsRes, assetsRes, verifRes] = await Promise.all([
+          API.get("/dashboard/stats"),
+          API.get("/dashboard/recent-assets"),
+          API.get("/dashboard/recent-verifications"),
+        ]);
+        if (statsRes.data?.stats) setStats(statsRes.data.stats);
+        if (assetsRes.data?.assets) setRecentAssets(assetsRes.data.assets);
+        if (verifRes.data?.verifications) setRecentVerifications(verifRes.data.verifications);
       }
     } catch (err) {
       console.error("Fetch dashboard error:", err);

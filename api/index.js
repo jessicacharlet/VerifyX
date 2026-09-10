@@ -5,10 +5,12 @@ const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, "../.env") });
 
 const authRoutes = require("../server/routes/authRoutes");
-const productRoutes = require("../server/routes/productRoutes");
+const assetRoutes = require("../server/routes/assetRoutes");
 const verifyRoutes = require("../server/routes/verifyRoutes");
-const adminRoutes = require("../server/routes/adminRoutes");
+const dashboardRoutes = require("../server/routes/dashboardRoutes");
 const blockchainRoutes = require("../server/routes/blockchainRoutes");
+const productRoutes = require("../server/routes/productRoutes");
+const adminRoutes = require("../server/routes/adminRoutes");
 const orderRoutes = require("../server/routes/orderRoutes");
 const scanRoutes = require("../server/routes/scanRoutes");
 const issueRoutes = require("../server/routes/issueRoutes");
@@ -24,8 +26,8 @@ app.use(
   })
 );
 
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
 // Disable Mongoose query buffering on serverless environments
 mongoose.set("bufferCommands", false);
@@ -47,12 +49,14 @@ async function connectToDatabase() {
   
   try {
     const db = await mongoose.connect(MONGO_URI, {
+      maxPoolSize: 10,
+      minPoolSize: 2,
       serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
       bufferCommands: false,
     });
     cachedDb = db;
     lastDbError = null;
-    console.log("✅ Serverless MongoDB connected successfully");
     return cachedDb;
   } catch (err) {
     lastDbError = err.message;
@@ -67,17 +71,18 @@ app.use(async (req, res, next) => {
     await connectToDatabase();
   } catch (err) {
     lastDbError = err.message;
-    console.error("Serverless middleware DB connect error:", err.message);
   }
   next();
 });
 
 // API Routes
 app.use("/api/auth", authRoutes);
-app.use("/api/products", productRoutes);
+app.use("/api/assets", assetRoutes);
 app.use("/api/verify", verifyRoutes);
-app.use("/api/admin", adminRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/blockchain", blockchainRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/admin", adminRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/scans", scanRoutes);
 app.use("/api/issues", issueRoutes);
@@ -87,7 +92,7 @@ app.use("/api/shipments", shipmentRoutes);
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     status: "OK",
-    service: "VeriMark Product Authenticity API (Vercel Serverless)",
+    service: "VerifyX Digital Asset Authentication API (Vercel Serverless)",
     timestamp: new Date(),
     environment: process.env.NODE_ENV || "production",
     dbConnected: mongoose.connection.readyState === 1,
@@ -97,7 +102,7 @@ app.get("/api/health", (req, res) => {
 
 // Global Error Handler
 app.use((err, req, res, next) => {
-  console.error("Unhandled Serverless Error:", err);
+  console.error("Unhandled Serverless Error:", err.message);
   res.status(err.status || 500).json({
     success: false,
     message: err.message || "Internal Server Error",
@@ -105,3 +110,4 @@ app.use((err, req, res, next) => {
 });
 
 module.exports = app;
+
