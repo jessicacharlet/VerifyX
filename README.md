@@ -1,112 +1,118 @@
-# VerifyX — QR-Based Product Lifecycle & Verification Platform
+# VerifyX — Digital Asset Authentication, Verification & Lifecycle Platform
 
-> An internal enterprise software platform for tracking physical products throughout their complete product lifecycle — from incoming order registration (received via existing sales channels such as e-commerce, ERP, marketplace, or retail), physical unit assignment, and unique QR printing through packaging, quality control, dispatch, transit hubs, and final customer delivery.
+> A high-performance digital asset authentication and verification platform for registering, protecting, and verifying digital files using deterministic SHA-256 cryptographic signatures, MongoDB storage, and Ethereum blockchain recording.
 
 🌐 **Live Production Deployment**: [https://verify-x-tawny.vercel.app](https://verify-x-tawny.vercel.app)
 
 ---
 
-## 1. Business Concept & Architecture
+## 1. Core Workflow & Digital Asset Authenticity
 
-In modern global commerce, companies receive orders across multiple sales channels (website, ERP, Amazon, retail POS). Once an order is received, companies face massive challenges in product lifecycle tracking, quality checkpoints, box tampering, damage detection, and customer verification.
+VerifyX protects and authenticates digital assets (documents, images, PDFs, certificates, data files) using cryptographic signatures:
 
-**VerifyX** operates as an internal enterprise system starting right after an order is received:
-
-$$\text{INCOMING ORDER} \rightarrow \text{ASSIGN PHYSICAL PRODUCT} \rightarrow \text{GENERATE UNIQUE QR} \rightarrow \text{8-STAGE LIFECYCLE AUDIT TRAIL}$$
-
-### 8-Stage Strict Lifecycle Progression
 ```
-[1] ORDER_RECEIVED ➔ [2] PRODUCT_ASSIGNED ➔ [3] QR_GENERATED ➔ [4] PACKED
-        ▲
-        └────── ➔ [5] QUALITY_CHECK ➔ [6] DISPATCHED ➔ [7] IN_TRANSIT ➔ [8] DELIVERED
-```
-*Note: Invalid stage jumps are rejected by the backend state machine.*
-
----
-
-## 2. Key Enterprise Modules
-
-### 🏢 Company Operational Dashboard (`/dashboard`)
-- **Real-Time Operations**: Monitor incoming registered orders, items in processing, packed units, dispatches, in-transit checkpoints, completed deliveries, and open quality issues.
-- **Operational Audit Stream**: Live feed of recent employee scan events and order status updates.
-
-### 📦 Register Incoming Order & Product Assignment (`/orders`, `/orders/:id`, `/orders/create`)
-- **Order Registration**: Register incoming orders received from external sales channels (e-commerce, Amazon, retail POS, ERP) with support for **External Order IDs** (e.g. `AMZ-4589231`) and **Sales Channel** tracking.
-- **Physical Product Assignment**: Link an individual physical unit (e.g. `Samsung Galaxy S21 FE`, Product ID: `VX-S21FE-000123`, Serial No: `SN-S21FE-928374`) to an incoming order.
-- **Unique QR Code Generation**: Automatically generates a unique QR code encoding the direct public verification URL (`/verify/VX-S21FE-000123`).
-
-### 📱 Employee Mobile QR Scanner (`/scan`)
-- **Camera & Manual Scanner**: Scan product QR codes using mobile camera or enter Product ID manually.
-- **Stage Action Checkpoint**: Displays current stage and next valid action button ("Confirm Packaging & Seal", "Complete Quality Check", "Dispatch to Logistics", "Confirm Delivery").
-- **Condition Checklist**: Select package condition (*Good/Damaged*), seal condition (*Intact/Broken*), accessories check (*Complete/Missing*), report damage details, or request item replacement.
-- **No Wallet Required**: Employees use standard JWT authentication without needing MetaMask or Web3 browser wallets.
-
-### 🛡️ Quality Control Workbench (`/quality-check`)
-- Inspect packed products prior to dispatch, verify serial numbers and security seals, and record PASS or FAIL quality inspection logs.
-
-### 🚚 Logistics & Shipment Tracking (`/shipments`)
-- Active tracking hub for dispatches, courier tracking numbers (`TRK-VX-889021`), and regional transport hub scan checkpoints.
-
-### 🚨 Damage & Replacement Management (`/issues`)
-- Log reported box damages, broken seals, missing items, or replacement requests (`OPEN`, `UNDER_REVIEW`, `RESOLVED`).
-- Bi-directional physical replacement: damaged items are retired (`REPLACED`) and fresh physical units are issued (`replacementFor` / `replacedBy`) with a new QR code.
-
-### 📜 Global Audit Trail (`/history`)
-- Complete searchable history log of every employee scan event across all physical products in the enterprise system, including SHA-256 event hashes and persistent blockchain audit proofs (`BlockchainRecord`).
-
-### 🔍 Public Customer Product Verification (`/verify/:productId`)
-- Public verification page accessible **without an account** showing:
-  - **✓ AUTHENTIC PRODUCT VERIFIED**: Visual indicator with cryptographic SHA-256 hash validation match.
-  - **Product Identity**: Model, Serial Number, Internal Product ID, and Current Lifecycle Stage.
-  - **Clean Product Journey Timeline**: Displays public lifecycle milestones while sanitizing internal employee PII and customer addresses.
-
----
-
-## 3. Comprehensive End-to-End Audit Results
-
-A live end-to-end audit test executed against Vercel Production returned 100% clean passes:
-
-```text
-=== VERIFYX COMPLETE END-TO-END AUDIT & FUNCTIONAL TEST ===
-
-✓ STEP 1 — Register Incoming Order: true (Internal ID: ORD-AMZ-8335635, External ID: AMZ-8335635)
-✓ STEP 2 & 3 — Assign Product & Generate QR: true (Product ID: VX-SAMSU-878513, Stage: QR_GENERATED)
-✓ STEP 4 — Packing Scan: true (Stage: PACKED)
-✓ STEP 5 — Quality Check Scan: true (Stage: QUALITY_CHECK)
-✓ STEP 6 — Invalid Stage Jump Rejection: true (Rejected with HTTP 400)
-✓ STEP 7 — Dispatched Scan: true (Stage: DISPATCHED)
-✓ STEP 8 — In Transit Checkpoint: true (Stage: IN_TRANSIT)
-✓ STEP 9 — Delivery Scan: true (Stage: DELIVERED)
-✓ STEP 10 — Public QR Verification: true (Authentic Status: AUTHENTIC, 8 Scans Events Recorded)
-
-=== ALL 34 AUDIT & FUNCTIONAL CRITERIA VERIFIED 100% CLEAN ===
+[1] REGISTER FILE ➔ [2] STREAM SHA-256 ➔ [3] STORE RECORD ➔ [4] ASYNC BLOCKCHAIN QUEUE
+                                                                      │
+[7] RETURN RESULT ⬅ [6] COMPARE HASH ⬅ [5] UPLOAD FILE FOR VERIFY ◄───┘
 ```
 
+### Digital Asset Verification Workflow:
+1. **Asset Registration**: User uploads an original digital file.
+2. **Deterministic SHA-256 Fingerprinting**: A 64-character SHA-256 cryptographic hash is generated from raw file bytes.
+3. **MongoDB Storage**: Asset metadata, owner ID, file properties, and SHA-256 fingerprint are stored in indexed MongoDB collections.
+4. **Asynchronous Non-Blocking Blockchain Recording**: On-chain Ethereum smart contract registration is queued asynchronously in the background (`PENDING` $\rightarrow$ `CONFIRMED`).
+5. **Verification**: User uploads any file later. VerifyX computes its SHA-256 hash and compares it against the registered database fingerprint.
+6. **Result Outcome**:
+   - **`ORIGINAL` (`AUTHENTIC`)**: Submitted file matches the registered cryptographic fingerprint.
+   - **`MODIFIED`**: Submitted file hash differs from the registered original fingerprint (tampering/content modification detected).
+   - **`NOT REGISTERED`**: No authenticity record exists for the submitted file or asset ID.
+
 ---
 
-## 4. Technology Stack
+## 2. High-Performance Architecture Highlights
 
-- **Frontend**: React 18, Vite, Vanilla CSS + Tailwind CSS, Lucide Icons, HTML5-QRCode, QRCode generator.
-- **Backend**: Node.js, Express.js REST API, Vercel Serverless Functions, JWT, bcryptjs, Crypto (SHA-256).
-- **Database**: MongoDB Atlas & Mongoose ODM.
-- **Audit Layer**: SHA-256 Event Hashing & Solidity Smart Contract audit records.
+The VerifyX backend is optimized for maximum performance, minimal RAM usage, and instant API responsiveness:
+
+- ⚡ **Asynchronous Non-Blocking Blockchain**: Registration endpoints respond instantly (< 50ms) after SHA-256 generation and database storage. Smart contract execution runs in non-blocking background workers without stalling HTTP connections.
+- 🌊 **Stream-Based SHA-256 Hashing**: Uses Node.js `fs.createReadStream` to compute cryptographic hashes incrementally without loading large files synchronously into RAM buffers.
+- 🏊 **MongoDB Connection Pooling & Indexing**: Connection pooling (`maxPoolSize: 10`, `minPoolSize: 2`) reuses active connections. Database indexes on `sha256Hash`, `assetId`, `ownerId`, `result`, and `createdAt` enable high-speed searches.
+- 🚀 **Unified Single-Roundtrip Dashboard API**: `/api/dashboard` consolidates statistics and recent records into a single parallel backend query (`Promise.all`), reducing frontend roundtrips from 3 to 1.
+- 📄 **Paginated Audit History Logs**: `/api/verify/history` supports `page` and `limit` parameters for efficient history log browsing.
 
 ---
 
-## 5. Role-Based Demo Logins
+## 3. Key Platform Features
+
+### 🏢 Digital Asset Dashboard (`/dashboard`)
+- Real-time total registered assets, authentic verifications, modified file alerts, unrecognized file counts, and recent asset audit streams.
+
+### 📄 Register Digital Asset (`/assets/register`)
+- Drag-and-drop file upload (PDF, DOCX, PNG, JPG, TXT) with automatic SHA-256 fingerprinting, unique Asset ID generation (`AST-XXXXXX`), and optional display name tagging.
+
+### 🔍 Digital Asset Verification (`/verify`)
+- Fast file comparison producing clear **ORIGINAL**, **MODIFIED**, or **NOT REGISTERED** outcomes, with collapsible technical SHA-256 hash comparison and blockchain proof cards.
+
+### 📜 Audit History (`/verification-history`)
+- Searchable and filterable verification audit trail with pagination and collapsible technical inspection details.
+
+### 📦 QR Product Lifecycle Module (`/orders`, `/scan`, `/shipments`)
+- Enterprise product lifecycle tracking from order placement through QR assignment, packaging, quality checkpoints, transport hubs, and delivery.
+
+---
+
+## 4. Primary API Endpoints
+
+### Digital Asset APIs
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/api/assets/register` | Register a digital asset file & compute SHA-256 fingerprint |
+| `GET` | `/api/assets` | Get registered assets list with filters & search |
+| `GET` | `/api/assets/:id` | Get single asset details by Asset ID or Mongo ID |
+
+### Verification APIs
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/api/verify` | Upload file & verify SHA-256 against registered database record |
+| `GET` | `/api/verify/history` | Get paginated verification audit history logs |
+| `GET` | `/api/verify/history/:id` | Get single verification audit record details |
+
+### Dashboard & Analytics APIs
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/dashboard` | Get consolidated stats & recent assets/verifications in 1 roundtrip |
+| `GET` | `/api/dashboard/stats` | Get aggregated dashboard statistics |
+| `GET` | `/api/health` | Health check endpoint and DB connection status |
+
+### User Authentication APIs
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/api/auth/register` | Register a new user account |
+| `POST` | `/api/auth/login` | Authenticate user & receive JWT token |
+| `GET` | `/api/auth/me` | Fetch authenticated user profile |
+
+---
+
+## 5. Technology Stack
+
+- **Frontend**: React 18, Vite, Vanilla CSS + Tailwind CSS, Lucide Icons, HTML5-QRCode.
+- **Backend**: Node.js, Express.js REST API, Vercel Serverless Functions, JWT, bcryptjs, Crypto (SHA-256 streams).
+- **Database**: MongoDB Atlas & Mongoose ODM with connection pooling and compound indexing.
+- **Blockchain**: Solidity Smart Contract (`contractArtifact.json`), Ethers.js v6, Hardhat / Ethereum Sepolia.
+
+---
+
+## 6. Role-Based Demo Accounts
 
 | Role | Email | Password | Access Rights |
 | :--- | :--- | :--- | :--- |
 | **System Admin** | `admin@verimark.io` | `password123` | Full enterprise control & user management |
-| **Warehouse Operator** | `warehouse@verimark.io` | `password123` | Order registration, product assignment & packaging scans |
-| **QC Inspector** | `qc@verimark.io` | `password123` | Quality checks, seal inspection & damage logging |
-| **Logistics Manager** | `logistics@verimark.io` | `password123` | Dispatches, courier tracking & transit hub updates |
-| **Delivery Agent** | `delivery@verimark.io` | `password123` | Final delivery confirmation scans |
-| **Customer** | `customer@gmail.com` | `password123` | Product verification & journey lookup |
+| **Warehouse Operator** | `warehouse@verimark.io` | `password123` | Asset registration & product assignment |
+| **QC Inspector** | `qc@verimark.io` | `password123` | Quality checks & verification inspection |
+| **Customer / User** | `customer@gmail.com` | `password123` | Asset verification & history audit |
 
 ---
 
-## 6. Quick Start Guide
+## 7. Quick Start Guide
 
 ### Prerequisites
 - Node.js (v18+ recommended)
@@ -117,7 +123,7 @@ A live end-to-end audit test executed against Vercel Production returned 100% cl
 git clone https://github.com/jessicacharlet/VerifyX.git
 cd VerifyX
 
-# Install all subfolder dependencies
+# Install subfolder dependencies
 npm run install:all
 ```
 
@@ -131,12 +137,16 @@ MONGO_URI=mongodb://127.0.0.1:27017/verimark
 JWT_SECRET=verimark_jwt_secret_key_2026_secure_hash_authentication
 ```
 
-### 3. Seed Enterprise Product Lifecycle Demo Data
+### 3. Run Automated Authentication Test Suite
 ```bash
-npm run seed
+# Terminal 1: Start backend server
+npm run server
+
+# Terminal 2: Run test suite
+node scripts/test_asset_authentication.js
 ```
 
-### 4. Run Application
+### 4. Run Full Application Locally
 ```bash
 # Terminal 1: Backend API (Port 5000)
 npm run server
@@ -145,17 +155,11 @@ npm run server
 npm run client
 ```
 
-Access locally at `http://localhost:5173`.
-
----
-
-## 7. Live Deployment
-
-The system is deployed and active on Vercel Production:
-👉 **[https://verify-x-tawny.vercel.app](https://verify-x-tawny.vercel.app)**
+Access application at `http://localhost:5173`.
 
 ---
 
 ## 8. License
 
 Distributed under the MIT License. See `LICENSE` for more information.
+
