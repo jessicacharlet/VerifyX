@@ -19,8 +19,8 @@ export default function Footer() {
 
         {/* Minimal Links */}
         <div className="flex items-center space-x-5 text-[11px]">
-          <Link to="/dashboard" className="hover:text-white transition-colors">
-            Dashboard
+          <Link to="/" className="hover:text-white transition-colors">
+            Home
           </Link>
           <Link to="/assets" className="hover:text-white transition-colors">
             Assets
@@ -29,7 +29,7 @@ export default function Footer() {
             Verify Asset
           </Link>
           <Link to="/verification-history" className="hover:text-white transition-colors">
-            History
+            Verification History
           </Link>
         </div>
 

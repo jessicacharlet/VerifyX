@@ -38,15 +38,10 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-full">
           {/* Brand Logo */}
           <Link to="/" className="flex items-center space-x-2.5 group">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center text-[#070B14] shadow-sm shadow-sky-500/20 group-hover:scale-105 transition-transform duration-200">
+            <div className="w-8 h-8 rounded-lg bg-sky-600 flex items-center justify-center text-white shadow-sm group-hover:bg-sky-500 transition-colors">
               <ShieldCheck className="w-5 h-5 font-bold" />
             </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-base font-bold text-white tracking-tight">VerifyX</span>
-              <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#111A2A] text-[#94A3B8] border border-[#22304A]">
-                Authenticator
-              </span>
-            </div>
+            <span className="text-base font-bold text-white tracking-tight">VerifyX</span>
           </Link>
 
           {/* Main Navigation Links */}
