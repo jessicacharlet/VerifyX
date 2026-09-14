@@ -4,6 +4,8 @@ import { AuthProvider } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 
+import ProtectedRoute from "./components/ProtectedRoute";
+
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -40,39 +42,40 @@ export default function App() {
           <Navbar />
           <main className="flex-grow">
             <Routes>
-              {/* Public Landing & Authentication */}
+              {/* Public Pages */}
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
-
-              {/* Digital Asset Authentication Core Modules */}
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/assets" element={<AssetsPage />} />
-              <Route path="/assets/register" element={<RegisterAssetPage />} />
-              <Route path="/assets/:id" element={<AssetDetailPage />} />
-              <Route path="/blockchain/:id" element={<BlockchainDetailPage />} />
-              <Route path="/verify" element={<VerifyAssetPage />} />
-              <Route path="/verify-asset" element={<VerifyAssetPage />} />
               <Route path="/verify-product" element={<VerifyPage />} />
               <Route path="/verify/:productId" element={<VerificationResultPage />} />
-              <Route path="/verification-history" element={<VerificationHistoryPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
 
-              {/* Product Authentication & Supply Chain Lifecycle */}
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/manufacturer-dashboard" element={<ManufacturerDashboard />} />
-              <Route path="/products" element={<ProductsPage />} />
-              <Route path="/register-product" element={<RegisterProductPage />} />
-              <Route path="/products/:id" element={<ProductDetailsPage />} />
-              <Route path="/orders" element={<OrdersPage />} />
-              <Route path="/orders/create" element={<CreateOrderPage />} />
-              <Route path="/orders/:id" element={<OrderDetailPage />} />
-              <Route path="/scan" element={<ScanPage />} />
-              <Route path="/history" element={<HistoryPage />} />
-              <Route path="/issues" element={<IssuesPage />} />
-              <Route path="/shipments" element={<ShipmentsPage />} />
-              <Route path="/quality-check" element={<QualityCheckPage />} />
-              <Route path="/qr/:id" element={<QRCodeViewPage />} />
+              {/* Protected Digital Asset Authentication Core Modules */}
+              <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+              <Route path="/assets" element={<ProtectedRoute><AssetsPage /></ProtectedRoute>} />
+              <Route path="/assets/register" element={<ProtectedRoute><RegisterAssetPage /></ProtectedRoute>} />
+              <Route path="/register-asset" element={<ProtectedRoute><RegisterAssetPage /></ProtectedRoute>} />
+              <Route path="/assets/:id" element={<ProtectedRoute><AssetDetailPage /></ProtectedRoute>} />
+              <Route path="/blockchain/:id" element={<ProtectedRoute><BlockchainDetailPage /></ProtectedRoute>} />
+              <Route path="/verify" element={<ProtectedRoute><VerifyAssetPage /></ProtectedRoute>} />
+              <Route path="/verify-asset" element={<ProtectedRoute><VerifyAssetPage /></ProtectedRoute>} />
+              <Route path="/verification-history" element={<ProtectedRoute><VerificationHistoryPage /></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+
+              {/* Protected Supply Chain Modules & Administration */}
+              <Route path="/admin" element={<ProtectedRoute allowedRoles={["admin", "ADMIN"]}><AdminDashboard /></ProtectedRoute>} />
+              <Route path="/manufacturer-dashboard" element={<ProtectedRoute><ManufacturerDashboard /></ProtectedRoute>} />
+              <Route path="/products" element={<ProtectedRoute><ProductsPage /></ProtectedRoute>} />
+              <Route path="/register-product" element={<ProtectedRoute><RegisterProductPage /></ProtectedRoute>} />
+              <Route path="/products/:id" element={<ProtectedRoute><ProductDetailsPage /></ProtectedRoute>} />
+              <Route path="/orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
+              <Route path="/orders/create" element={<ProtectedRoute><CreateOrderPage /></ProtectedRoute>} />
+              <Route path="/orders/:id" element={<ProtectedRoute><OrderDetailPage /></ProtectedRoute>} />
+              <Route path="/scan" element={<ProtectedRoute><ScanPage /></ProtectedRoute>} />
+              <Route path="/history" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
+              <Route path="/issues" element={<ProtectedRoute><IssuesPage /></ProtectedRoute>} />
+              <Route path="/shipments" element={<ProtectedRoute><ShipmentsPage /></ProtectedRoute>} />
+              <Route path="/quality-check" element={<ProtectedRoute><QualityCheckPage /></ProtectedRoute>} />
+              <Route path="/qr/:id" element={<ProtectedRoute><QRCodeViewPage /></ProtectedRoute>} />
             </Routes>
           </main>
           <Footer />

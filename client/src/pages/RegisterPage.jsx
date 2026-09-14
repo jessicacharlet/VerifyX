@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { ShieldCheck, Lock, Mail, User, Building, AlertCircle } from "lucide-react";
 
@@ -18,6 +18,9 @@ export default function RegisterPage() {
 
   const { register } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const redirectTarget = location.state?.from?.pathname || (typeof location.state?.from === "string" ? location.state.from : null);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -31,9 +34,13 @@ export default function RegisterPage() {
       setIsSubmitting(true);
       const res = await register(formData);
       if (res.success) {
-        if (res.user.role === "admin") navigate("/admin");
-        else if (res.user.role === "manufacturer") navigate("/dashboard");
-        else navigate("/products");
+        if (redirectTarget) {
+          navigate(redirectTarget, { replace: true });
+        } else if (res.user.role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/dashboard");
+        }
       } else {
         setError(res.message || "Registration failed.");
       }

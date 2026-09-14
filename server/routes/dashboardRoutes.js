@@ -6,6 +6,9 @@ const {
   getRecentAssets,
   getRecentVerifications,
 } = require("../controllers/dashboardController");
+const { protect } = require("../middleware/authMiddleware");
+
+router.use(protect);
 
 router.get("/", getDashboardSummary);
 router.get("/summary", getDashboardSummary);

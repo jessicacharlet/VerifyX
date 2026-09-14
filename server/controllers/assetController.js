@@ -43,13 +43,8 @@ const registerAsset = async (req, res) => {
       sha256Hash = generateBufferHash(fileBuffer);
     }
 
-    // Determine Owner ID (from JWT user or default fallback)
-    let ownerId = req.user ? req.user._id : null;
-    if (!ownerId) {
-      const defaultUser = await User.findOne({}).select("_id").lean();
-      if (defaultUser) ownerId = defaultUser._id;
-    }
-
+    // Determine Owner ID from authenticated user
+    const ownerId = req.user ? req.user._id : null;
     if (!ownerId) {
       return res.status(401).json({
         success: false,
@@ -113,13 +108,18 @@ const registerAsset = async (req, res) => {
 
 // @desc    Get all registered assets (with search and filters)
 // @route   GET /api/assets
-// @access  Private / Public
+// @access  Private
 const getAssets = async (req, res) => {
   try {
     await ensureDbConnected();
 
     const { search, fileType, blockchainStatus } = req.query;
     const query = {};
+
+    // Restrict non-admin users to viewing only their own registered assets
+    if (req.user && req.user.role !== "admin") {
+      query.ownerId = req.user._id;
+    }
 
     if (search) {
       query.$or = [
@@ -155,7 +155,7 @@ const getAssets = async (req, res) => {
 
 // @desc    Get single asset details by assetId or _id
 // @route   GET /api/assets/:id
-// @access  Public
+// @access  Private
 const getAssetById = async (req, res) => {
   try {
     await ensureDbConnected();
@@ -173,6 +173,15 @@ const getAssetById = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: `Asset with ID '${queryId}' not found.`,
+      });
+    }
+
+    // Ownership check: non-admin users can only access their own assets
+    const assetOwnerId = asset.ownerId?._id ? asset.ownerId._id.toString() : asset.ownerId?.toString();
+    if (req.user && req.user.role !== "admin" && assetOwnerId !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: You do not have permission to view this digital asset.",
       });
     }
 

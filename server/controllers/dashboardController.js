@@ -3,12 +3,22 @@ const VerificationHistory = require("../models/VerificationHistory");
 const BlockchainRecord = require("../models/BlockchainRecord");
 const { ensureDbConnected } = require("../utils/dbConnect");
 
+// Helper to determine query filters based on user role
+const getRoleFilters = (user) => {
+  const isNonAdmin = user && user.role !== "admin";
+  const assetFilter = isNonAdmin ? { ownerId: user._id } : {};
+  const verificationFilter = isNonAdmin ? { userId: user._id } : {};
+  return { assetFilter, verificationFilter };
+};
+
 // @desc    Get aggregated dashboard statistics from MongoDB
 // @route   GET /api/dashboard/stats
-// @access  Public
+// @access  Private
 const getDashboardStats = async (req, res) => {
   try {
     await ensureDbConnected();
+
+    const { assetFilter, verificationFilter } = getRoleFilters(req.user);
 
     const [
       totalRegisteredAssets,
@@ -17,10 +27,10 @@ const getDashboardStats = async (req, res) => {
       notRegisteredCount,
       blockchainRegisteredCount,
     ] = await Promise.all([
-      Asset.countDocuments(),
-      VerificationHistory.countDocuments({ result: "AUTHENTIC" }),
-      VerificationHistory.countDocuments({ result: "MODIFIED" }),
-      VerificationHistory.countDocuments({ result: "NOT_REGISTERED" }),
+      Asset.countDocuments(assetFilter),
+      VerificationHistory.countDocuments({ ...verificationFilter, result: "AUTHENTIC" }),
+      VerificationHistory.countDocuments({ ...verificationFilter, result: "MODIFIED" }),
+      VerificationHistory.countDocuments({ ...verificationFilter, result: "NOT_REGISTERED" }),
       BlockchainRecord.countDocuments({ status: "CONFIRMED" }),
     ]);
 
@@ -46,12 +56,14 @@ const getDashboardStats = async (req, res) => {
 
 // @desc    Get recent registered digital assets
 // @route   GET /api/dashboard/recent-assets
-// @access  Public
+// @access  Private
 const getRecentAssets = async (req, res) => {
   try {
     await ensureDbConnected();
 
-    const recentAssets = await Asset.find()
+    const { assetFilter } = getRoleFilters(req.user);
+
+    const recentAssets = await Asset.find(assetFilter)
       .sort({ createdAt: -1 })
       .limit(6)
       .populate("ownerId", "name email");
@@ -72,12 +84,14 @@ const getRecentAssets = async (req, res) => {
 
 // @desc    Get recent asset verification attempts
 // @route   GET /api/dashboard/recent-verifications
-// @access  Public
+// @access  Private
 const getRecentVerifications = async (req, res) => {
   try {
     await ensureDbConnected();
 
-    const recentVerifications = await VerificationHistory.find()
+    const { verificationFilter } = getRoleFilters(req.user);
+
+    const recentVerifications = await VerificationHistory.find(verificationFilter)
       .sort({ timestamp: -1 })
       .limit(6)
       .populate("userId", "name email");
@@ -98,10 +112,12 @@ const getRecentVerifications = async (req, res) => {
 
 // @desc    Get complete unified dashboard summary (stats + recent assets + recent verifications in 1 roundtrip)
 // @route   GET /api/dashboard or GET /api/dashboard/summary
-// @access  Public
+// @access  Private
 const getDashboardSummary = async (req, res) => {
   try {
     await ensureDbConnected();
+
+    const { assetFilter, verificationFilter } = getRoleFilters(req.user);
 
     const [
       totalRegisteredAssets,
@@ -112,13 +128,13 @@ const getDashboardSummary = async (req, res) => {
       recentAssets,
       recentVerifications,
     ] = await Promise.all([
-      Asset.countDocuments(),
-      VerificationHistory.countDocuments({ result: "AUTHENTIC" }),
-      VerificationHistory.countDocuments({ result: "MODIFIED" }),
-      VerificationHistory.countDocuments({ result: "NOT_REGISTERED" }),
+      Asset.countDocuments(assetFilter),
+      VerificationHistory.countDocuments({ ...verificationFilter, result: "AUTHENTIC" }),
+      VerificationHistory.countDocuments({ ...verificationFilter, result: "MODIFIED" }),
+      VerificationHistory.countDocuments({ ...verificationFilter, result: "NOT_REGISTERED" }),
       BlockchainRecord.countDocuments({ status: "CONFIRMED" }),
-      Asset.find().sort({ createdAt: -1 }).limit(6).populate("ownerId", "name email").lean(),
-      VerificationHistory.find().sort({ timestamp: -1 }).limit(6).populate("userId", "name email").lean(),
+      Asset.find(assetFilter).sort({ createdAt: -1 }).limit(6).populate("ownerId", "name email").lean(),
+      VerificationHistory.find(verificationFilter).sort({ timestamp: -1 }).limit(6).populate("userId", "name email").lean(),
     ]);
 
     return res.status(200).json({
@@ -149,4 +165,5 @@ module.exports = {
   getRecentAssets,
   getRecentVerifications,
 };
+
 

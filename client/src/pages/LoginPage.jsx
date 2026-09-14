@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { ShieldCheck, Lock, Mail, AlertCircle } from "lucide-react";
+import { ShieldCheck, Info, AlertCircle } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -11,6 +11,10 @@ export default function LoginPage() {
 
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const redirectTarget = location.state?.from?.pathname || (typeof location.state?.from === "string" ? location.state.from : null);
+  const redirectMsg = location.state?.message || (redirectTarget?.includes("register") ? "Sign in to register and manage your digital assets." : null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,9 +24,13 @@ export default function LoginPage() {
       setIsSubmitting(true);
       const res = await login(email, password);
       if (res.success) {
-        if (res.user.role === "admin") navigate("/admin");
-        else if (res.user.role === "manufacturer") navigate("/dashboard");
-        else navigate("/products");
+        if (redirectTarget) {
+          navigate(redirectTarget, { replace: true });
+        } else if (res.user.role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/dashboard");
+        }
       } else {
         setError(res.message || "Failed to authenticate.");
       }
@@ -39,11 +47,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-[75vh] flex items-center justify-center px-4 py-12 bg-[#070A0F]">
-      <div className="w-full max-w-md bg-[#0D121A] p-6 sm:p-8 rounded-lg border border-[#202A36] space-y-6 shadow-md">
+    <div className="min-h-[75vh] flex items-center justify-center px-4 py-12 bg-[#070A0F] font-sans animate-fadeIn">
+      <div className="w-full max-w-md bg-[#0D121A] p-6 sm:p-8 rounded-xl border border-[#202A36] space-y-6 shadow-2xl">
         <div className="text-center space-y-2">
-          <div className="w-10 h-10 rounded bg-[#06b6d4] text-[#070A0F] flex items-center justify-center mx-auto">
-            <ShieldCheck className="w-6 h-6" />
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 text-[#070A0F] flex items-center justify-center mx-auto shadow-md shadow-cyan-500/20">
+            <ShieldCheck className="w-7 h-7 font-bold" />
           </div>
           <h1 className="text-xl font-bold text-white tracking-tight">Sign in to VerifyX</h1>
           <p className="text-xs text-[#8B97A7]">
@@ -51,8 +59,15 @@ export default function LoginPage() {
           </p>
         </div>
 
+        {redirectMsg && (
+          <div className="p-3.5 rounded-lg bg-cyan-950/70 border border-cyan-500/40 text-xs text-cyan-200 flex items-start space-x-2.5 shadow-sm">
+            <Info className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+            <span className="font-medium">{redirectMsg}</span>
+          </div>
+        )}
+
         {error && (
-          <div className="p-3 rounded bg-red-950/60 border border-red-500/30 text-xs text-red-300 flex items-start space-x-2">
+          <div className="p-3.5 rounded-lg bg-red-950/60 border border-red-500/30 text-xs text-red-300 flex items-start space-x-2.5">
             <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>
@@ -67,7 +82,7 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="user@enterprise.com"
               required
-              className="w-full px-3.5 py-2.5 rounded bg-[#111821] border border-[#202A36] text-white placeholder-[#8B97A7] focus:outline-none focus:border-cyan-500 font-mono text-xs"
+              className="w-full px-3.5 py-2.5 rounded-lg bg-[#111821] border border-[#202A36] text-white placeholder-[#8B97A7] focus:outline-none focus:border-cyan-400 font-mono text-xs transition-colors"
             />
           </div>
 
@@ -79,23 +94,23 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               required
-              className="w-full px-3.5 py-2.5 rounded bg-[#111821] border border-[#202A36] text-white placeholder-[#8B97A7] focus:outline-none focus:border-cyan-500 font-mono text-xs"
+              className="w-full px-3.5 py-2.5 rounded-lg bg-[#111821] border border-[#202A36] text-white placeholder-[#8B97A7] focus:outline-none focus:border-cyan-400 font-mono text-xs transition-colors"
             />
           </div>
 
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-2.5 rounded-md font-bold text-xs text-[#070A0F] bg-[#06b6d4] hover:bg-[#0891b2] transition-colors border border-cyan-400/30"
+            className="w-full py-3 rounded-lg font-bold text-xs text-[#070A0F] bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 transition-all shadow-md shadow-cyan-500/20"
           >
-            {isSubmitting ? "Authenticating..." : "Sign in"}
+            {isSubmitting ? "Authenticating..." : "Sign In"}
           </button>
         </form>
 
         <div className="pt-2 text-center text-xs text-[#8B97A7] border-t border-[#202A36]">
           Don't have an account?{" "}
-          <Link to="/register" className="text-cyan-400 font-bold hover:underline">
-            Register enterprise account
+          <Link to="/register" state={location.state} className="text-cyan-400 font-bold hover:underline">
+            Create Account
           </Link>
         </div>
       </div>

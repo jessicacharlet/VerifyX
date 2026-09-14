@@ -52,79 +52,106 @@ export default function Navbar() {
           {/* Main Navigation Links */}
           <div className="hidden lg:flex items-center space-x-1.5 text-xs font-medium">
             <Link
-              to="/dashboard"
+              to="/"
               className={`relative px-3.5 py-2 rounded-lg transition-all duration-200 flex items-center space-x-2 ${
-                isActive("/dashboard")
+                isActive("/")
                   ? "text-sky-400 bg-sky-500/10 border border-sky-500/30 font-semibold"
                   : "text-[#94A3B8] hover:text-white hover:bg-[#111A2A]"
               }`}
             >
-              <LayoutDashboard className="w-3.5 h-3.5" />
-              <span>Dashboard</span>
-              {isActive("/dashboard") && (
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-sky-400 rounded-full" />
-              )}
+              <span>Home</span>
             </Link>
 
-            <Link
-              to="/assets"
-              className={`relative px-3.5 py-2 rounded-lg transition-all duration-200 flex items-center space-x-2 ${
-                isActive("/assets")
-                  ? "text-sky-400 bg-sky-500/10 border border-sky-500/30 font-semibold"
-                  : "text-[#94A3B8] hover:text-white hover:bg-[#111A2A]"
-              }`}
-            >
-              <FileCheck className="w-3.5 h-3.5" />
-              <span>Assets</span>
-              {isActive("/assets") && (
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-sky-400 rounded-full" />
-              )}
-            </Link>
+            {user ? (
+              <>
+                <Link
+                  to="/dashboard"
+                  className={`relative px-3.5 py-2 rounded-lg transition-all duration-200 flex items-center space-x-2 ${
+                    isActive("/dashboard")
+                      ? "text-sky-400 bg-sky-500/10 border border-sky-500/30 font-semibold"
+                      : "text-[#94A3B8] hover:text-white hover:bg-[#111A2A]"
+                  }`}
+                >
+                  <LayoutDashboard className="w-3.5 h-3.5" />
+                  <span>Dashboard</span>
+                  {isActive("/dashboard") && (
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-sky-400 rounded-full" />
+                  )}
+                </Link>
 
-            <Link
-              to="/assets/register"
-              className={`relative px-3.5 py-2 rounded-lg transition-all duration-200 flex items-center space-x-2 ${
-                isActive("/assets/register")
-                  ? "text-sky-400 bg-sky-500/10 border border-sky-500/30 font-semibold"
-                  : "text-[#94A3B8] hover:text-white hover:bg-[#111A2A]"
-              }`}
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Register Asset</span>
-              {isActive("/assets/register") && (
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-sky-400 rounded-full" />
-              )}
-            </Link>
+                <Link
+                  to="/assets"
+                  className={`relative px-3.5 py-2 rounded-lg transition-all duration-200 flex items-center space-x-2 ${
+                    isActive("/assets")
+                      ? "text-sky-400 bg-sky-500/10 border border-sky-500/30 font-semibold"
+                      : "text-[#94A3B8] hover:text-white hover:bg-[#111A2A]"
+                  }`}
+                >
+                  <FileCheck className="w-3.5 h-3.5" />
+                  <span>Assets</span>
+                  {isActive("/assets") && (
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-sky-400 rounded-full" />
+                  )}
+                </Link>
 
-            <Link
-              to="/verify"
-              className={`relative px-3.5 py-2 rounded-lg transition-all duration-200 flex items-center space-x-2 ${
-                isActive("/verify")
-                  ? "text-sky-400 bg-sky-500/10 border border-sky-500/30 font-semibold"
-                  : "text-[#94A3B8] hover:text-white hover:bg-[#111A2A]"
-              }`}
-            >
-              <Search className="w-3.5 h-3.5" />
-              <span>Verify Asset</span>
-              {isActive("/verify") && (
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-sky-400 rounded-full" />
-              )}
-            </Link>
+                <Link
+                  to="/assets/register"
+                  className={`relative px-3.5 py-2 rounded-lg transition-all duration-200 flex items-center space-x-2 ${
+                    isActive("/assets/register")
+                      ? "text-sky-400 bg-sky-500/10 border border-sky-500/30 font-semibold"
+                      : "text-[#94A3B8] hover:text-white hover:bg-[#111A2A]"
+                  }`}
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Register Asset</span>
+                  {isActive("/assets/register") && (
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-sky-400 rounded-full" />
+                  )}
+                </Link>
 
-            <Link
-              to="/verification-history"
-              className={`relative px-3.5 py-2 rounded-lg transition-all duration-200 flex items-center space-x-2 ${
-                isActive("/verification-history")
-                  ? "text-sky-400 bg-sky-500/10 border border-sky-500/30 font-semibold"
-                  : "text-[#94A3B8] hover:text-white hover:bg-[#111A2A]"
-              }`}
-            >
-              <History className="w-3.5 h-3.5" />
-              <span>Verification History</span>
-              {isActive("/verification-history") && (
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-sky-400 rounded-full" />
-              )}
-            </Link>
+                <Link
+                  to="/verify"
+                  className={`relative px-3.5 py-2 rounded-lg transition-all duration-200 flex items-center space-x-2 ${
+                    isActive("/verify")
+                      ? "text-sky-400 bg-sky-500/10 border border-sky-500/30 font-semibold"
+                      : "text-[#94A3B8] hover:text-white hover:bg-[#111A2A]"
+                  }`}
+                >
+                  <Search className="w-3.5 h-3.5" />
+                  <span>Verify Asset</span>
+                  {isActive("/verify") && (
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-sky-400 rounded-full" />
+                  )}
+                </Link>
+
+                <Link
+                  to="/verification-history"
+                  className={`relative px-3.5 py-2 rounded-lg transition-all duration-200 flex items-center space-x-2 ${
+                    isActive("/verification-history")
+                      ? "text-sky-400 bg-sky-500/10 border border-sky-500/30 font-semibold"
+                      : "text-[#94A3B8] hover:text-white hover:bg-[#111A2A]"
+                  }`}
+                >
+                  <History className="w-3.5 h-3.5" />
+                  <span>Verification History</span>
+                  {isActive("/verification-history") && (
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-sky-400 rounded-full" />
+                  )}
+                </Link>
+              </>
+            ) : (
+              <Link
+                to="/verify-product"
+                className={`relative px-3.5 py-2 rounded-lg transition-all duration-200 flex items-center space-x-2 ${
+                  isActive("/verify-product")
+                    ? "text-sky-400 bg-sky-500/10 border border-sky-500/30 font-semibold"
+                    : "text-[#94A3B8] hover:text-white hover:bg-[#111A2A]"
+                }`}
+              >
+                <Search className="w-3.5 h-3.5" />
+                <span>Verify Asset</span>
+              </Link>
+            )}
           </div>
 
           {/* Right Controls */}
@@ -180,50 +207,70 @@ export default function Navbar() {
       {mobileMenuOpen && (
         <div className="lg:hidden bg-[#0D1422] border-b border-[#22304A] px-4 pt-3 pb-5 space-y-2 text-xs font-sans animate-fadeIn">
           <Link
-            to="/dashboard"
+            to="/"
             onClick={() => setMobileMenuOpen(false)}
-            className={`block px-3.5 py-2.5 rounded-lg font-medium transition-colors ${
-              isActive("/dashboard") ? "text-sky-400 bg-sky-500/10 border border-sky-500/30" : "text-white hover:bg-[#111A2A]"
-            }`}
+            className="block px-3.5 py-2.5 rounded-lg font-medium text-white hover:bg-[#111A2A]"
           >
-            Dashboard
+            Home
           </Link>
-          <Link
-            to="/assets"
-            onClick={() => setMobileMenuOpen(false)}
-            className={`block px-3.5 py-2.5 rounded-lg font-medium transition-colors ${
-              isActive("/assets") ? "text-sky-400 bg-sky-500/10 border border-sky-500/30" : "text-white hover:bg-[#111A2A]"
-            }`}
-          >
-            Assets
-          </Link>
-          <Link
-            to="/assets/register"
-            onClick={() => setMobileMenuOpen(false)}
-            className={`block px-3.5 py-2.5 rounded-lg font-medium transition-colors ${
-              isActive("/assets/register") ? "text-sky-400 bg-sky-500/10 border border-sky-500/30" : "text-sky-400 hover:bg-[#111A2A]"
-            }`}
-          >
-            + Register Asset
-          </Link>
-          <Link
-            to="/verify"
-            onClick={() => setMobileMenuOpen(false)}
-            className={`block px-3.5 py-2.5 rounded-lg font-medium transition-colors ${
-              isActive("/verify") ? "text-sky-400 bg-sky-500/10 border border-sky-500/30" : "text-white hover:bg-[#111A2A]"
-            }`}
-          >
-            Verify Asset
-          </Link>
-          <Link
-            to="/verification-history"
-            onClick={() => setMobileMenuOpen(false)}
-            className={`block px-3.5 py-2.5 rounded-lg font-medium transition-colors ${
-              isActive("/verification-history") ? "text-sky-400 bg-sky-500/10 border border-sky-500/30" : "text-[#94A3B8] hover:bg-[#111A2A]"
-            }`}
-          >
-            Verification History
-          </Link>
+
+          {user ? (
+            <>
+              <Link
+                to="/dashboard"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`block px-3.5 py-2.5 rounded-lg font-medium transition-colors ${
+                  isActive("/dashboard") ? "text-sky-400 bg-sky-500/10 border border-sky-500/30" : "text-white hover:bg-[#111A2A]"
+                }`}
+              >
+                Dashboard
+              </Link>
+              <Link
+                to="/assets"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`block px-3.5 py-2.5 rounded-lg font-medium transition-colors ${
+                  isActive("/assets") ? "text-sky-400 bg-sky-500/10 border border-sky-500/30" : "text-white hover:bg-[#111A2A]"
+                }`}
+              >
+                Assets
+              </Link>
+              <Link
+                to="/assets/register"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`block px-3.5 py-2.5 rounded-lg font-medium transition-colors ${
+                  isActive("/assets/register") ? "text-sky-400 bg-sky-500/10 border border-sky-500/30" : "text-sky-400 hover:bg-[#111A2A]"
+                }`}
+              >
+                + Register Asset
+              </Link>
+              <Link
+                to="/verify"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`block px-3.5 py-2.5 rounded-lg font-medium transition-colors ${
+                  isActive("/verify") ? "text-sky-400 bg-sky-500/10 border border-sky-500/30" : "text-white hover:bg-[#111A2A]"
+                }`}
+              >
+                Verify Asset
+              </Link>
+              <Link
+                to="/verification-history"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`block px-3.5 py-2.5 rounded-lg font-medium transition-colors ${
+                  isActive("/verification-history") ? "text-sky-400 bg-sky-500/10 border border-sky-500/30" : "text-[#94A3B8] hover:bg-[#111A2A]"
+                }`}
+              >
+                Verification History
+              </Link>
+            </>
+          ) : (
+            <Link
+              to="/verify-product"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-3.5 py-2.5 rounded-lg font-medium text-white hover:bg-[#111A2A]"
+            >
+              Verify Asset
+            </Link>
+          )}
 
           <div className="pt-3 border-t border-[#22304A]">
             {user ? (
