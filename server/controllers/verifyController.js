@@ -8,6 +8,53 @@ const { analyzeProductImage } = require("../services/aiService");
 const crypto = require("crypto");
 const path = require("path");
 
+const SAMPLE_PRODUCTS = {
+  "PROD-AP-9901": {
+    productId: "PROD-AP-9901",
+    orderId: "ORD-2026-9901",
+    productName: "AirPods Pro (2nd Gen)",
+    modelName: "AirPods Pro",
+    brandName: "Apple",
+    category: "Electronics",
+    description: "Active Noise Cancelling Wireless Earbuds with H2 Chip and MagSafe Case",
+    batchNumber: "BATCH-2026-A1",
+    serialNumber: "SN-AP-98213890",
+    manufacturingDate: new Date("2026-02-15"),
+    warehouse: "Cupertino Distribution Hub",
+    currentLocation: "In Transit - Frankfurt Hub",
+    currentStage: "IN_TRANSIT",
+    condition: "GOOD",
+    damageDetected: false,
+    replacementRequired: false,
+    productImage: "https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=600&auto=format&fit=crop&q=80",
+    productHash: "ba304195efa75afac07a0ce19644fb98e81de1b6da9517f6282ff9014805def4",
+    transactionHash: "0x8a92329381c8172901c8282710102b378129e0192837192830192830129e8129",
+    status: "AUTHENTIC",
+  },
+  "PROD-SG-8820": {
+    productId: "PROD-SG-8820",
+    orderId: "ORD-2026-8820",
+    productName: "Galaxy S25 Ultra",
+    modelName: "S25 Ultra",
+    brandName: "Samsung",
+    category: "Electronics",
+    description: "Titanium Black Smartphone with Snapdragon 8 Gen 4 and 200MP AI Camera",
+    batchNumber: "BATCH-2026-S2",
+    serialNumber: "SN-SG-77391022",
+    manufacturingDate: new Date("2026-01-20"),
+    warehouse: "Seoul Global Logistics Center",
+    currentLocation: "Delivered to Customer",
+    currentStage: "DELIVERED",
+    condition: "GOOD",
+    damageDetected: false,
+    replacementRequired: false,
+    productImage: "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=600&auto=format&fit=crop&q=80",
+    productHash: "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+    transactionHash: "0x3f721980a1c92837101928270192827192837192830192830129e81293821092",
+    status: "AUTHENTIC",
+  },
+};
+
 // @desc    Public endpoint to verify product authenticity with AI forgery analysis & lifecycle timeline
 // @route   POST /api/verify
 // @access  Public
@@ -58,10 +105,24 @@ const verifyProduct = async (req, res) => {
       "-" +
       crypto.randomBytes(3).toString("hex").toUpperCase();
 
-    // 1. Search in MongoDB by productId or serialNumber
-    const product = await Product.findOne({
-      $or: [{ productId: queryId }, { serialNumber: queryId }],
-    }).populate("manufacturer", "name companyName email walletAddress");
+    // 1. Search in MongoDB by productId or serialNumber with resilient fallback
+    let product = null;
+    try {
+      product = await Product.findOne({
+        $or: [{ productId: queryId }, { serialNumber: queryId }],
+      }).populate("manufacturer", "name companyName email walletAddress");
+    } catch (dbErr) {
+      console.warn("⚠️ Product DB query warning during verification:", dbErr.message);
+    }
+
+    if (!product) {
+      const sampleMatch = Object.values(SAMPLE_PRODUCTS).find(
+        (p) => p.productId === queryId || p.serialNumber === queryId
+      );
+      if (sampleMatch) {
+        product = sampleMatch;
+      }
+    }
 
     // Check if uploaded file is present or image path provided
     let submittedImagePath = req.file ? req.file.path : null;

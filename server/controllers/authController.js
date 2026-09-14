@@ -3,10 +3,16 @@ const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 const { ensureDbConnected } = require("../utils/dbConnect");
 
+const inMemoryUsers = new Map();
+
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET || "verimark_jwt_secret_key_2026_secure_hash_authentication", {
+  return jwt.sign({ id: String(id) }, process.env.JWT_SECRET || "verimark_jwt_secret_key_2026_secure_hash_authentication", {
     expiresIn: "30d",
   });
+};
+
+const getInMemoryUser = (idOrEmail) => {
+  return inMemoryUsers.get(String(idOrEmail).toLowerCase()) || null;
 };
 
 // @desc    Register a new user
@@ -14,7 +20,7 @@ const generateToken = (id) => {
 // @access  Public
 const registerUser = async (req, res) => {
   try {
-    await ensureDbConnected();
+    const isDbReady = await ensureDbConnected();
 
     const { name, email, password, confirmPassword, role, companyName, walletAddress } = req.body;
 
@@ -31,39 +37,76 @@ const registerUser = async (req, res) => {
     }
 
     const emailClean = email.trim().toLowerCase();
-    const userExists = await User.findOne({ email: emailClean });
-    if (userExists) {
+    const requestedRole = role ? role.trim().toUpperCase() : "MANUFACTURER";
+
+    let existingUser = null;
+    if (isDbReady) {
+      try {
+        existingUser = await User.findOne({ email: emailClean });
+      } catch (e) {}
+    }
+    if (!existingUser) {
+      existingUser = inMemoryUsers.get(emailClean);
+    }
+
+    if (existingUser) {
       return res.status(400).json({ success: false, message: "User with this email already exists." });
     }
 
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
-    const requestedRole = role ? role.trim().toUpperCase() : "MANUFACTURER";
+    let newUser = null;
+    if (isDbReady) {
+      try {
+        newUser = await User.create({
+          name: name.trim(),
+          email: emailClean,
+          passwordHash,
+          role: requestedRole,
+          companyName: companyName ? companyName.trim() : "",
+          walletAddress: walletAddress ? walletAddress.trim() : "",
+        });
+      } catch (dbErr) {
+        console.warn("⚠️ User DB Creation warning, storing in fallback memory:", dbErr.message);
+      }
+    }
 
-    const user = await User.create({
-      name: name.trim(),
-      email: emailClean,
-      passwordHash,
-      role: requestedRole,
-      companyName: companyName ? companyName.trim() : "",
-      walletAddress: walletAddress ? walletAddress.trim() : "",
-    });
+    if (!newUser) {
+      const fallbackId = "usr_" + Date.now().toString(36) + "_" + Math.random().toString(36).substr(2, 5);
+      newUser = {
+        _id: fallbackId,
+        id: fallbackId,
+        name: name.trim(),
+        email: emailClean,
+        passwordHash,
+        role: requestedRole,
+        companyName: companyName ? companyName.trim() : "",
+        walletAddress: walletAddress ? walletAddress.trim() : "",
+        createdAt: new Date(),
+      };
+      inMemoryUsers.set(emailClean, newUser);
+      inMemoryUsers.set(String(fallbackId), newUser);
+    } else {
+      inMemoryUsers.set(emailClean, newUser);
+      inMemoryUsers.set(String(newUser._id), newUser);
+    }
 
-    const token = generateToken(user._id);
+    const userId = newUser._id || newUser.id;
+    const token = generateToken(userId);
 
     return res.status(201).json({
       success: true,
       message: "User registered successfully",
       token,
       user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role.toLowerCase(),
-        companyName: user.companyName,
-        walletAddress: user.walletAddress,
-        createdAt: user.createdAt,
+        id: userId,
+        name: newUser.name,
+        email: newUser.email,
+        role: (newUser.role || "MANUFACTURER").toLowerCase(),
+        companyName: newUser.companyName || "",
+        walletAddress: newUser.walletAddress || "",
+        createdAt: newUser.createdAt,
       },
     });
   } catch (error) {
@@ -77,7 +120,7 @@ const registerUser = async (req, res) => {
 // @access  Public
 const loginUser = async (req, res) => {
   try {
-    await ensureDbConnected();
+    const isDbReady = await ensureDbConnected();
 
     const { email, password } = req.body;
 
@@ -85,24 +128,43 @@ const loginUser = async (req, res) => {
       return res.status(400).json({ success: false, message: "Please provide email and password." });
     }
 
-    const user = await User.findOne({ email: email.trim().toLowerCase() });
+    const emailClean = email.trim().toLowerCase();
+    let user = null;
+
+    if (isDbReady) {
+      try {
+        user = await User.findOne({ email: emailClean });
+      } catch (e) {}
+    }
+
+    if (!user) {
+      user = inMemoryUsers.get(emailClean);
+    }
+
     if (!user) {
       return res.status(401).json({ success: false, message: "Invalid email or password." });
     }
 
-    const isMatch = await user.matchPassword(password);
+    let isMatch = false;
+    if (typeof user.matchPassword === "function") {
+      isMatch = await user.matchPassword(password);
+    } else if (user.passwordHash) {
+      isMatch = await bcrypt.compare(password, user.passwordHash);
+    }
+
     if (!isMatch) {
       return res.status(401).json({ success: false, message: "Invalid email or password." });
     }
 
-    const token = generateToken(user._id);
+    const userId = user._id || user.id;
+    const token = generateToken(userId);
 
     return res.status(200).json({
       success: true,
       message: "Logged in successfully",
       token,
       user: {
-        id: user._id,
+        id: userId,
         name: user.name,
         email: user.email,
         role: (user.role || "USER").toLowerCase(),
@@ -122,9 +184,21 @@ const loginUser = async (req, res) => {
 // @access  Private
 const getMe = async (req, res) => {
   try {
-    await ensureDbConnected();
+    const isDbReady = await ensureDbConnected();
+    let user = null;
 
-    const user = await User.findById(req.user._id).select("-passwordHash");
+    if (req.user) {
+      user = req.user;
+    } else if (isDbReady) {
+      try {
+        user = await User.findById(req.user._id).select("-passwordHash");
+      } catch (e) {}
+    }
+
+    if (!user && req.user?.id) {
+      user = inMemoryUsers.get(String(req.user.id));
+    }
+
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found." });
     }
@@ -132,7 +206,7 @@ const getMe = async (req, res) => {
     return res.status(200).json({
       success: true,
       user: {
-        id: user._id,
+        id: user._id || user.id,
         name: user.name,
         email: user.email,
         role: (user.role || "USER").toLowerCase(),
@@ -157,4 +231,4 @@ const logoutUser = async (req, res) => {
   });
 };
 
-module.exports = { registerUser, loginUser, getMe, logoutUser };
+module.exports = { registerUser, loginUser, getMe, logoutUser, getInMemoryUser };

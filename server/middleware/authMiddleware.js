@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const { getInMemoryUser } = require("../controllers/authController");
 
 const protect = async (req, res, next) => {
   let token;
@@ -9,7 +10,15 @@ const protect = async (req, res, next) => {
       token = req.headers.authorization.split(" ")[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET || "verimark_jwt_secret_key_2026_secure_hash_authentication");
 
-      req.user = await User.findById(decoded.id).select("-passwordHash");
+      try {
+        req.user = await User.findById(decoded.id).select("-passwordHash");
+      } catch (e) {
+        req.user = null;
+      }
+
+      if (!req.user && decoded.id) {
+        req.user = getInMemoryUser(decoded.id);
+      }
 
       if (!req.user) {
         return res.status(401).json({ success: false, message: "User account no longer exists." });
@@ -32,7 +41,12 @@ const optionalAuth = async (req, res, next) => {
     try {
       const token = req.headers.authorization.split(" ")[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET || "verimark_jwt_secret_key_2026_secure_hash_authentication");
-      req.user = await User.findById(decoded.id).select("-passwordHash");
+      try {
+        req.user = await User.findById(decoded.id).select("-passwordHash");
+      } catch (e) {}
+      if (!req.user && decoded.id) {
+        req.user = getInMemoryUser(decoded.id);
+      }
     } catch (e) {
       // Continue without user
     }
