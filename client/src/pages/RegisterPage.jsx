@@ -38,7 +38,12 @@ export default function RegisterPage() {
         setError(res.message || "Registration failed.");
       }
     } catch (err) {
-      setError("Registration service error.");
+      const serverErrMsg =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
+        "Registration failed. Please check details and try again.";
+      setError(serverErrMsg);
     } finally {
       setIsSubmitting(false);
     }

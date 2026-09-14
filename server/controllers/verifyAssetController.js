@@ -35,12 +35,16 @@ const verifyAsset = async (req, res) => {
 
     // Fast indexed MongoDB search for matching asset record
     let targetAsset = null;
-    if (providedAssetId) {
-      targetAsset = await Asset.findOne({ assetId: providedAssetId }).populate("ownerId", "name email role");
-    }
+    try {
+      if (providedAssetId) {
+        targetAsset = await Asset.findOne({ assetId: providedAssetId }).populate("ownerId", "name email role");
+      }
 
-    if (!targetAsset) {
-      targetAsset = await Asset.findOne({ sha256Hash: submittedHash }).populate("ownerId", "name email role");
+      if (!targetAsset && submittedHash) {
+        targetAsset = await Asset.findOne({ sha256Hash: submittedHash }).populate("ownerId", "name email role");
+      }
+    } catch (dbErr) {
+      console.warn("⚠️ Database query skipped during file verification:", dbErr.message);
     }
 
     const verificationId = "VRF-" + Date.now().toString(36).toUpperCase() + "-" + crypto.randomBytes(2).toString("hex").toUpperCase();

@@ -49,6 +49,51 @@ app.use("/api/scans", scanRoutes);
 app.use("/api/issues", issueRoutes);
 app.use("/api/shipments", shipmentRoutes);
 
+// Root Landing Endpoint
+app.get("/", (req, res) => {
+  if (req.accepts("html")) {
+    res.setHeader("Content-Type", "text/html");
+    return res.status(200).send(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>VerifyX API Service</title>
+        <style>
+          body { background-color: #070B14; color: #E2E8F0; font-family: system-ui, -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+          .card { background-color: #0D1422; border: 1px solid #22304A; border-radius: 16px; padding: 40px; max-width: 520px; width: 100%; text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); }
+          .badge { display: inline-flex; align-items: center; gap: 6px; background-color: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4); color: #34D399; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 9999px; margin-bottom: 16px; }
+          .dot { width: 8px; height: 8px; background-color: #10B981; border-radius: 50%; display: inline-block; }
+          h1 { color: #FFFFFF; margin: 0 0 8px 0; font-size: 24px; font-weight: 700; }
+          p { color: #94A3B8; font-size: 14px; margin: 0 0 24px 0; line-height: 1.5; }
+          .btn-group { display: flex; flex-direction: column; gap: 12px; }
+          .btn-primary { background: linear-gradient(135deg, #38BDF8, #3B82F6); color: #070B14; font-weight: 700; padding: 12px 20px; border-radius: 8px; text-decoration: none; font-size: 14px; transition: opacity 0.2s; }
+          .btn-secondary { background: #111A2A; color: #38BDF8; border: 1px solid #22304A; font-weight: 600; padding: 12px 20px; border-radius: 8px; text-decoration: none; font-size: 14px; }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <div class="badge"><span class="dot"></span> VerifyX Backend API Online</div>
+          <h1>VerifyX REST API Server</h1>
+          <p>This port (5000) hosts the backend API server. To view the user web application, open the frontend dev server at <strong>localhost:5173</strong>.</p>
+          <div class="btn-group">
+            <a href="http://localhost:5173" class="btn-primary">Launch VerifyX Frontend (Port 5173)</a>
+            <a href="/api/health" class="btn-secondary">Check Backend Health (/api/health)</a>
+          </div>
+        </div>
+      </body>
+      </html>
+    `);
+  }
+  res.status(200).json({
+    status: "OK",
+    service: "VerifyX Digital Asset Authentication REST API",
+    frontendUrl: "http://localhost:5173",
+    healthEndpoint: "/api/health",
+  });
+});
+
 // Health check endpoint
 app.get("/api/health", (req, res) => {
   res.status(200).json({

@@ -16,7 +16,7 @@ const registerUser = async (req, res) => {
   try {
     await ensureDbConnected();
 
-    const { name, email, password, confirmPassword } = req.body;
+    const { name, email, password, confirmPassword, role, companyName, walletAddress } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ success: false, message: "Please provide full name, email, and password." });
@@ -39,11 +39,15 @@ const registerUser = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
+    const requestedRole = role ? role.trim().toUpperCase() : "MANUFACTURER";
+
     const user = await User.create({
       name: name.trim(),
       email: emailClean,
       passwordHash,
-      role: "USER",
+      role: requestedRole,
+      companyName: companyName ? companyName.trim() : "",
+      walletAddress: walletAddress ? walletAddress.trim() : "",
     });
 
     const token = generateToken(user._id);
@@ -56,7 +60,9 @@ const registerUser = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role,
+        role: user.role.toLowerCase(),
+        companyName: user.companyName,
+        walletAddress: user.walletAddress,
         createdAt: user.createdAt,
       },
     });
@@ -99,7 +105,9 @@ const loginUser = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role,
+        role: (user.role || "USER").toLowerCase(),
+        companyName: user.companyName || "",
+        walletAddress: user.walletAddress || "",
         createdAt: user.createdAt,
       },
     });
@@ -127,7 +135,9 @@ const getMe = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role,
+        role: (user.role || "USER").toLowerCase(),
+        companyName: user.companyName || "",
+        walletAddress: user.walletAddress || "",
         createdAt: user.createdAt,
       },
     });

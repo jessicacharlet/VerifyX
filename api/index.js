@@ -88,6 +88,16 @@ app.use("/api/scans", scanRoutes);
 app.use("/api/issues", issueRoutes);
 app.use("/api/shipments", shipmentRoutes);
 
+// Root Landing Endpoint
+app.get("/", (req, res) => {
+  res.status(200).json({
+    status: "OK",
+    service: "VerifyX Digital Asset Authentication API (Vercel Serverless)",
+    healthEndpoint: "/api/health",
+    timestamp: new Date(),
+  });
+});
+
 // Health check endpoint
 app.get("/api/health", (req, res) => {
   res.status(200).json({

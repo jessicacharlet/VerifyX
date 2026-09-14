@@ -21,8 +21,16 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["ADMIN", "USER", "AUDITOR"],
-      default: "USER",
+      enum: ["ADMIN", "USER", "AUDITOR", "MANUFACTURER", "CUSTOMER", "admin", "manufacturer", "customer", "user", "auditor"],
+      default: "MANUFACTURER",
+    },
+    companyName: {
+      type: String,
+      default: "",
+    },
+    walletAddress: {
+      type: String,
+      default: "",
     },
   },
   {

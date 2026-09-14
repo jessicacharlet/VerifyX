@@ -27,7 +27,12 @@ export default function LoginPage() {
         setError(res.message || "Failed to authenticate.");
       }
     } catch (err) {
-      setError("Login service error.");
+      const serverErrMsg =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
+        "Login failed. Please check credentials.";
+      setError(serverErrMsg);
     } finally {
       setIsSubmitting(false);
     }
