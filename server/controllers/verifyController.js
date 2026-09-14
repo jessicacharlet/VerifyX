@@ -52,8 +52,92 @@ const SAMPLE_PRODUCTS = {
     productHash: "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
     transactionHash: "0x3f721980a1c92837101928270192827192837192830192830129e81293821092",
     status: "AUTHENTIC",
+  "VERIFYX-TEST-001": {
+    productId: "VERIFYX-TEST-001",
+    orderId: "ORD-2026-001",
+    productName: "VerifyX Demo Product",
+    modelName: "VerifyX Demo",
+    brandName: "VerifyX",
+    category: "Digital Assets",
+    description: "Official VerifyX Demo Authentication Product",
+    batchNumber: "BATCH-2026-VX1",
+    serialNumber: "VX-2026-001",
+    manufacturingDate: new Date("2026-01-01"),
+    warehouse: "VerifyX Global Logistics",
+    currentLocation: "Verified & Delivered",
+    currentStage: "DELIVERED",
+    condition: "GOOD",
+    damageDetected: false,
+    replacementRequired: false,
+    productHash: "ba304195efa75afac07a0ce19644fb98e81de1b6da9517f6282ff9014805def4",
+    transactionHash: "0x8a92329381c8172901c8282710102b378129e0192837192830192830129e8129",
+    status: "AUTHENTIC",
+  },
+  "VX-2026-001": {
+    productId: "VERIFYX-TEST-001",
+    orderId: "ORD-2026-001",
+    productName: "VerifyX Demo Product",
+    modelName: "VerifyX Demo",
+    brandName: "VerifyX",
+    category: "Digital Assets",
+    description: "Official VerifyX Demo Authentication Product",
+    batchNumber: "BATCH-2026-VX1",
+    serialNumber: "VX-2026-001",
+    manufacturingDate: new Date("2026-01-01"),
+    warehouse: "VerifyX Global Logistics",
+    currentLocation: "Verified & Delivered",
+    currentStage: "DELIVERED",
+    condition: "GOOD",
+    damageDetected: false,
+    replacementRequired: false,
+    productHash: "ba304195efa75afac07a0ce19644fb98e81de1b6da9517f6282ff9014805def4",
+    transactionHash: "0x8a92329381c8172901c8282710102b378129e0192837192830192830129e8129",
+    status: "AUTHENTIC",
   },
 };
+
+// Helper function to extract all possible Product IDs / Serial Numbers from multi-line QR payloads
+function extractCandidateIds(rawInput) {
+  if (!rawInput) return [];
+
+  let decoded = String(rawInput).trim();
+  try {
+    decoded = decodeURIComponent(decoded);
+  } catch (e) {}
+
+  if (decoded.includes("/verify/")) decoded = decoded.split("/verify/")[1].split("?")[0];
+  if (decoded.includes("/track/")) decoded = decoded.split("/track/")[1].split("?")[0];
+
+  const candidates = new Set();
+
+  // 1. Direct raw string
+  const cleanRaw = decoded.replace(/\/+$/, "").trim().toUpperCase();
+  if (cleanRaw) candidates.add(cleanRaw);
+
+  // 2. Multi-line extraction
+  const lines = decoded.split(/\r?\n|%0A/i).map((l) => l.trim()).filter(Boolean);
+  if (lines.length > 0) {
+    const firstLine = lines[0].replace(/\/+$/, "").trim().toUpperCase();
+    if (firstLine) candidates.add(firstLine);
+  }
+
+  // 3. Extract labeled values (e.g. Serial: VX-2026-001, Product: ..., ID: ...)
+  for (const line of lines) {
+    if (line.includes(":")) {
+      const parts = line.split(":");
+      const val = parts.slice(1).join(":").trim().toUpperCase();
+      if (val) candidates.add(val);
+    }
+  }
+
+  // 4. Regex extraction for known ID patterns
+  const codeMatches = decoded.match(/\b(VERIFYX-[A-Z0-9-]+|PROD-[A-Z0-9-]+|AST-[A-Z0-9-]+|VX-[A-Z0-9-]+|SN-[A-Z0-9-]+|ORD-[A-Z0-9-]+)\b/gi);
+  if (codeMatches) {
+    codeMatches.forEach((m) => candidates.add(m.trim().toUpperCase()));
+  }
+
+  return Array.from(candidates);
+}
 
 // @desc    Public endpoint to verify product authenticity with AI forgery analysis & lifecycle timeline
 // @route   POST /api/verify
@@ -70,16 +154,8 @@ const verifyProduct = async (req, res) => {
       });
     }
 
-    // Clean and normalize input (support full verification URL or raw ID)
-    let queryId = String(rawInput).trim();
-    try {
-      queryId = decodeURIComponent(queryId);
-    } catch (e) {}
-
-    if (queryId.includes("/verify/")) queryId = queryId.split("/verify/")[1].split("?")[0];
-    if (queryId.includes("/track/")) queryId = queryId.split("/track/")[1].split("?")[0];
-
-    queryId = queryId.replace(/\/+$/, "").trim().toUpperCase();
+    const candidates = extractCandidateIds(rawInput);
+    const queryId = candidates[0] || String(rawInput).trim().toUpperCase();
 
     // Ensure DB Connection State before executing query
     if (mongoose.connection.readyState !== 1) {
@@ -91,13 +167,6 @@ const verifyProduct = async (req, res) => {
       }
     }
 
-    if (mongoose.connection.readyState !== 1) {
-      return res.status(503).json({
-        success: false,
-        message: "Database service unavailable. Please check MONGO_URI configuration.",
-      });
-    }
-
     // Generate unique audit verification ID
     const verificationId =
       "VERIF-" +
@@ -105,22 +174,35 @@ const verifyProduct = async (req, res) => {
       "-" +
       crypto.randomBytes(3).toString("hex").toUpperCase();
 
-    // 1. Search in MongoDB by productId or serialNumber with resilient fallback
+    // 1. Search in MongoDB by candidate productIds or serialNumbers
     let product = null;
-    try {
-      product = await Product.findOne({
-        $or: [{ productId: queryId }, { serialNumber: queryId }],
-      }).populate("manufacturer", "name companyName email walletAddress");
-    } catch (dbErr) {
-      console.warn("⚠️ Product DB query warning during verification:", dbErr.message);
+    if (mongoose.connection.readyState === 1) {
+      try {
+        product = await Product.findOne({
+          $or: [
+            { productId: { $in: candidates } },
+            { serialNumber: { $in: candidates } },
+            { blockchainProductId: { $in: candidates } },
+          ],
+        }).populate("manufacturer", "name companyName email walletAddress");
+      } catch (dbErr) {
+        console.warn("⚠️ Product DB query warning during verification:", dbErr.message);
+      }
     }
 
     if (!product) {
-      const sampleMatch = Object.values(SAMPLE_PRODUCTS).find(
-        (p) => p.productId === queryId || p.serialNumber === queryId
-      );
-      if (sampleMatch) {
-        product = sampleMatch;
+      for (const cand of candidates) {
+        if (SAMPLE_PRODUCTS[cand]) {
+          product = SAMPLE_PRODUCTS[cand];
+          break;
+        }
+        const sampleMatch = Object.values(SAMPLE_PRODUCTS).find(
+          (p) => p.productId === cand || p.serialNumber === cand
+        );
+        if (sampleMatch) {
+          product = sampleMatch;
+          break;
+        }
       }
     }
 

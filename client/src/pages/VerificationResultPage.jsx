@@ -37,13 +37,25 @@ export default function VerificationResultPage() {
       setLoading(true);
       setError("");
 
-      const res = await API.get(`/verify/${encodeURIComponent(productId)}`);
+      let cleanId = productId ? String(productId).trim() : "";
+      try {
+        cleanId = decodeURIComponent(cleanId);
+      } catch (e) {}
+
+      if (cleanId.includes("\n") || cleanId.includes("%0A")) {
+        const lines = cleanId.split(/\r?\n|%0A/i).map((l) => l.trim()).filter(Boolean);
+        if (lines.length > 0) cleanId = lines[0];
+      }
+      if (cleanId.includes("/verify/")) cleanId = cleanId.split("/verify/")[1].split("?")[0];
+      cleanId = cleanId.replace(/\/+$/, "").trim();
+
+      const res = await API.get(`/verify/${encodeURIComponent(cleanId)}`);
       if (res.data) {
         setData(res.data);
       }
     } catch (err) {
       console.error("Public verification fetch error:", err);
-      setError(err.response?.data?.message || "Failed to verify product.");
+      setError(err.response?.data?.message || "Failed to verify product registration record.");
     } finally {
       setLoading(false);
     }
@@ -61,13 +73,22 @@ export default function VerificationResultPage() {
 
   if (error || !data) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-12 text-center space-y-4 font-sans">
-        <AlertTriangle className="w-12 h-12 text-red-400 mx-auto" />
-        <div className="text-lg font-semibold text-white">Verification Service Error</div>
-        <p className="text-xs text-red-300">{error || "Could not retrieve verification data."}</p>
-        <Link to="/" className="inline-block px-4 py-2 bg-slate-800 text-white rounded text-xs font-medium">
-          Return Home
-        </Link>
+      <div className="max-w-2xl mx-auto px-4 py-12 text-center space-y-5 font-sans">
+        <div className="w-16 h-16 rounded-full bg-red-500/20 border-2 border-red-400 flex items-center justify-center mx-auto text-red-400">
+          <ShieldAlert className="w-10 h-10" />
+        </div>
+        <div className="space-y-2">
+          <h1 className="text-2xl font-bold text-white">Product Record Not Found</h1>
+          <p className="text-xs text-red-300 max-w-md mx-auto">{error || "No authenticity record was found for the requested product identifier."}</p>
+        </div>
+        <div className="pt-2 flex items-center justify-center space-x-3">
+          <Link to="/verify-product" className="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg text-xs font-semibold transition-colors">
+            Verify Another Product
+          </Link>
+          <Link to="/" className="px-5 py-2.5 bg-[#0F172A] hover:bg-[#1E293B] text-slate-300 border border-[#1E293B] rounded-lg text-xs font-semibold transition-colors">
+            Return Home
+          </Link>
+        </div>
       </div>
     );
   }

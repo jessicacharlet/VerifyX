@@ -5,50 +5,76 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem("verifyx_user");
-    return savedUser ? JSON.parse(savedUser) : null;
+    try {
+      const savedUser = localStorage.getItem("verifyx_user");
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch (e) {
+      return null;
+    }
   });
-  const [token, setToken] = useState(() => localStorage.getItem("verifyx_token") || null);
+
+  const [token, setToken] = useState(() => {
+    return localStorage.getItem("verifyx_token") || null;
+  });
+
   const [loading, setLoading] = useState(true);
 
+  // Validate session on initial mount only
   useEffect(() => {
-    const checkLoggedInUser = async () => {
-      if (token) {
+    const initializeAuth = async () => {
+      const savedToken = localStorage.getItem("verifyx_token");
+      if (savedToken) {
         try {
           const res = await API.get("/auth/me");
-          if (res.data.success) {
+          if (res.data && res.data.success && res.data.user) {
             setUser(res.data.user);
             localStorage.setItem("verifyx_user", JSON.stringify(res.data.user));
           }
         } catch (error) {
-          console.error("Token verification failed:", error);
-          logout();
+          console.warn("Session check warning:", error?.response?.status || error.message);
+          if (error.response?.status === 401) {
+            // Token is explicitly rejected as invalid/expired
+            logout();
+          }
         }
+      } else {
+        setUser(null);
+        setToken(null);
       }
       setLoading(false);
     };
 
-    checkLoggedInUser();
-  }, [token]);
+    initializeAuth();
+  }, []);
 
   const login = async (email, password) => {
     const res = await API.post("/auth/login", { email, password });
-    if (res.data.success) {
-      setToken(res.data.token);
-      setUser(res.data.user);
-      localStorage.setItem("verifyx_token", res.data.token);
-      localStorage.setItem("verifyx_user", JSON.stringify(res.data.user));
+    if (res.data && res.data.success && res.data.token) {
+      const newToken = res.data.token;
+      const newUser = res.data.user;
+
+      localStorage.setItem("verifyx_token", newToken);
+      localStorage.setItem("verifyx_user", JSON.stringify(newUser));
+
+      setToken(newToken);
+      setUser(newUser);
+      setLoading(false);
     }
     return res.data;
   };
 
   const register = async (formData) => {
     const res = await API.post("/auth/register", formData);
-    if (res.data.success) {
-      setToken(res.data.token);
-      setUser(res.data.user);
-      localStorage.setItem("verifyx_token", res.data.token);
-      localStorage.setItem("verifyx_user", JSON.stringify(res.data.user));
+    if (res.data && res.data.success && res.data.token) {
+      const newToken = res.data.token;
+      const newUser = res.data.user;
+
+      localStorage.setItem("verifyx_token", newToken);
+      localStorage.setItem("verifyx_user", JSON.stringify(newUser));
+
+      setToken(newToken);
+      setUser(newUser);
+      setLoading(false);
     }
     return res.data;
   };
@@ -58,6 +84,7 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
     localStorage.removeItem("verifyx_token");
     localStorage.removeItem("verifyx_user");
+    setLoading(false);
   };
 
   return (

@@ -20,6 +20,10 @@ export default function VerifyPage() {
     console.log("QR scanned text received in page:", scannedCode);
     let cleanCode = scannedCode.trim();
     try { cleanCode = decodeURIComponent(cleanCode); } catch (e) {}
+    if (cleanCode.includes("\n") || cleanCode.includes("%0A")) {
+      const lines = cleanCode.split(/\r?\n|%0A/i).map((l) => l.trim()).filter(Boolean);
+      if (lines.length > 0) cleanCode = lines[0];
+    }
     if (cleanCode.includes("/verify/")) {
       cleanCode = cleanCode.split("/verify/")[1].split("?")[0];
     }

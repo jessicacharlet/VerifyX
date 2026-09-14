@@ -23,16 +23,24 @@ export default function LoginPage() {
     try {
       setIsSubmitting(true);
       const res = await login(email, password);
-      if (res.success) {
-        if (redirectTarget) {
-          navigate(redirectTarget, { replace: true });
-        } else if (res.user.role === "admin") {
-          navigate("/admin");
-        } else {
-          navigate("/dashboard");
-        }
+      if (res && res.success) {
+        const isValidInternalPath =
+          redirectTarget &&
+          typeof redirectTarget === "string" &&
+          redirectTarget.startsWith("/") &&
+          !redirectTarget.startsWith("//") &&
+          redirectTarget !== "/login" &&
+          redirectTarget !== "/register";
+
+        const targetPath = isValidInternalPath
+          ? redirectTarget
+          : res.user?.role === "admin"
+          ? "/admin"
+          : "/dashboard";
+
+        navigate(targetPath, { replace: true });
       } else {
-        setError(res.message || "Failed to authenticate.");
+        setError(res?.message || "Failed to authenticate.");
       }
     } catch (err) {
       const serverErrMsg =
