@@ -16,6 +16,22 @@ blockchain/typechain-types/
 # Server File Uploads & Local Temp Files
 uploads/*
 !uploads/.gitkeep
+server/uploads/*
+!server/uploads/.gitkeep
+ai-service/uploads/*
+!ai-service/uploads/.gitkeep
+
+# Python & AI Microservice
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+venv/
+.venv/
+ai-service/__pycache__/
+ai-service/venv/
+ai-service/.venv/
 
 # Build Outputs
 client/dist/
