@@ -96,12 +96,14 @@ export default function RegisterAssetPage() {
         setLoading(false);
         return;
       }
-      const serverErrMsg =
-        err.response?.data?.message ||
-        err.response?.data?.error ||
-        err.message ||
-        "Failed to register digital asset. Please check connection.";
-      setError(serverErrMsg);
+      const rawMsg = err.response?.data?.message || err.response?.data?.error || err.message;
+      const cleanMsg =
+        typeof rawMsg === "string"
+          ? rawMsg
+          : typeof rawMsg === "object" && typeof rawMsg?.message === "string"
+          ? rawMsg.message
+          : "Failed to register digital asset. Please check connection.";
+      setError(cleanMsg);
       setLoading(false);
     }
   };
@@ -159,7 +161,7 @@ export default function RegisterAssetPage() {
             <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
             <div>
               <div className="font-semibold text-red-200">Registration Failed</div>
-              <div>{error}</div>
+              <div>{typeof error === "string" ? error : (error?.message || "Registration error occurred.")}</div>
             </div>
           </div>
         )}

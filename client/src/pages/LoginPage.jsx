@@ -73,15 +73,18 @@ export default function LoginPage() {
 
         navigate(targetPath, { replace: true });
       } else {
-        setError(res?.message || "Failed to authenticate.");
+        const rawErr = res?.message || "Failed to authenticate.";
+        setError(typeof rawErr === "string" ? rawErr : rawErr?.message || "Failed to authenticate.");
       }
     } catch (err) {
-      const serverErrMsg =
-        err.response?.data?.message ||
-        err.response?.data?.error ||
-        err.message ||
-        "Login failed. Please check credentials.";
-      setError(serverErrMsg);
+      const rawMsg = err.response?.data?.message || err.response?.data?.error || err.message;
+      const cleanMsg =
+        typeof rawMsg === "string"
+          ? rawMsg
+          : typeof rawMsg === "object" && typeof rawMsg?.message === "string"
+          ? rawMsg.message
+          : "Login failed. Please check credentials.";
+      setError(cleanMsg);
     } finally {
       setIsSubmitting(false);
     }
@@ -110,7 +113,7 @@ export default function LoginPage() {
         {error && (
           <div className="p-3.5 rounded-lg bg-red-950/60 border border-red-500/30 text-xs text-red-300 flex items-start space-x-2.5">
             <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
-            <span>{error}</span>
+            <span>{typeof error === "string" ? error : (error?.message || "Authentication failed.")}</span>
           </div>
         )}
 

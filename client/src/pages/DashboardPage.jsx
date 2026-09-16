@@ -59,7 +59,14 @@ export default function DashboardPage() {
       }
     } catch (err) {
       console.error("Fetch dashboard error:", err);
-      setError(err.response?.data?.message || err.message || "Unable to load dashboard data. Please try again.");
+      const rawMsg = err.response?.data?.message || err.response?.data?.error || err.message;
+      const cleanMsg =
+        typeof rawMsg === "string"
+          ? rawMsg
+          : typeof rawMsg === "object" && typeof rawMsg?.message === "string"
+          ? rawMsg.message
+          : "Unable to load dashboard data. Please try again.";
+      setError(cleanMsg);
     } finally {
       setLoading(false);
     }
@@ -118,7 +125,9 @@ export default function DashboardPage() {
             <AlertTriangle className="w-5 h-5 text-red-400 shrink-0" />
             <div>
               <div className="font-semibold text-red-100">Unable to load dashboard data</div>
-              <div className="text-red-300 text-[11px]">{error}</div>
+              <div className="text-red-300 text-[11px]">
+                {typeof error === "string" ? error : (error?.message || "Unable to load dashboard statistics.")}
+              </div>
             </div>
           </div>
           <button
