@@ -42,8 +42,8 @@ export default function DashboardPage() {
       const res = await API.get("/dashboard");
       if (res.data && res.data.success) {
         if (res.data.stats) setStats(res.data.stats);
-        if (res.data.assets) setRecentAssets(res.data.assets);
-        if (res.data.verifications) setRecentVerifications(res.data.verifications);
+        if (Array.isArray(res.data.assets)) setRecentAssets(res.data.assets);
+        if (Array.isArray(res.data.verifications)) setRecentVerifications(res.data.verifications);
       } else {
         // Fallback parallel fetch if legacy response
         const [statsRes, assetsRes, verifRes] = await Promise.all([
@@ -52,8 +52,8 @@ export default function DashboardPage() {
           API.get("/dashboard/recent-verifications"),
         ]);
         if (statsRes.data?.stats) setStats(statsRes.data.stats);
-        if (assetsRes.data?.assets) setRecentAssets(assetsRes.data.assets);
-        if (verifRes.data?.verifications) setRecentVerifications(verifRes.data.verifications);
+        if (Array.isArray(assetsRes.data?.assets)) setRecentAssets(assetsRes.data.assets);
+        if (Array.isArray(verifRes.data?.verifications)) setRecentVerifications(verifRes.data.verifications);
       }
     } catch (err) {
       console.error("Fetch dashboard error:", err);

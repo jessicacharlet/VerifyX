@@ -156,8 +156,12 @@ export default function Navbar() {
                 <Link to="/profile" className="flex items-center space-x-2 group">
                   <UserCheck className="w-4 h-4 text-sky-400 group-hover:scale-110 transition-transform" />
                   <div className="text-right leading-tight">
-                    <div className="text-xs font-semibold text-white group-hover:text-sky-300">{user.name}</div>
-                    <div className="text-[11px] text-[#94A3B8]">{user.email}</div>
+                    <div className="text-xs font-semibold text-white group-hover:text-sky-300">
+                      {typeof user.name === "string" ? user.name : "Authorized User"}
+                    </div>
+                    <div className="text-[11px] text-[#94A3B8]">
+                      {typeof user.email === "string" ? user.email : ""}
+                    </div>
                   </div>
                 </Link>
                 <button
@@ -277,8 +281,12 @@ export default function Navbar() {
                 >
                   <UserCheck className="w-4 h-4 text-sky-400" />
                   <div>
-                    <div className="font-semibold text-white">{user.name}</div>
-                    <div className="text-[11px] text-[#94A3B8]">{user.email}</div>
+                    <div className="font-semibold text-white">
+                      {typeof user.name === "string" ? user.name : "Authorized User"}
+                    </div>
+                    <div className="text-[11px] text-[#94A3B8]">
+                      {typeof user.email === "string" ? user.email : ""}
+                    </div>
                   </div>
                 </Link>
                 <button

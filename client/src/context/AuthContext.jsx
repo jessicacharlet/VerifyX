@@ -3,11 +3,25 @@ import API from "../services/api";
 
 const AuthContext = createContext();
 
+const normalizeUser = (userData) => {
+  if (!userData || typeof userData !== "object") return null;
+  const target = userData.user && typeof userData.user === "object" ? userData.user : userData;
+  return {
+    id: String(target.id || target._id || ""),
+    name: typeof target.name === "string" ? target.name : (target.email ? String(target.email) : "Authorized User"),
+    email: typeof target.email === "string" ? target.email : "",
+    role: typeof target.role === "string" ? target.role.toLowerCase() : "user",
+    companyName: typeof target.companyName === "string" ? target.companyName : "",
+    walletAddress: typeof target.walletAddress === "string" ? target.walletAddress : "",
+    createdAt: target.createdAt || null,
+  };
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     try {
       const savedUser = localStorage.getItem("verifyx_user");
-      return savedUser ? JSON.parse(savedUser) : null;
+      return savedUser ? normalizeUser(JSON.parse(savedUser)) : null;
     } catch (e) {
       return null;
     }
@@ -27,8 +41,9 @@ export const AuthProvider = ({ children }) => {
         try {
           const res = await API.get("/auth/me");
           if (res.data && res.data.success && res.data.user) {
-            setUser(res.data.user);
-            localStorage.setItem("verifyx_user", JSON.stringify(res.data.user));
+            const cleanUser = normalizeUser(res.data.user);
+            setUser(cleanUser);
+            localStorage.setItem("verifyx_user", JSON.stringify(cleanUser));
           }
         } catch (error) {
           console.warn("Session check warning:", error?.response?.status || error.message);
@@ -51,13 +66,13 @@ export const AuthProvider = ({ children }) => {
     const res = await API.post("/auth/login", { email, password });
     if (res.data && res.data.success && res.data.token) {
       const newToken = res.data.token;
-      const newUser = res.data.user;
+      const cleanUser = normalizeUser(res.data.user);
 
       localStorage.setItem("verifyx_token", newToken);
-      localStorage.setItem("verifyx_user", JSON.stringify(newUser));
+      localStorage.setItem("verifyx_user", JSON.stringify(cleanUser));
 
       setToken(newToken);
-      setUser(newUser);
+      setUser(cleanUser);
       setLoading(false);
     }
     return res.data;
@@ -67,13 +82,13 @@ export const AuthProvider = ({ children }) => {
     const res = await API.post("/auth/register", formData);
     if (res.data && res.data.success && res.data.token) {
       const newToken = res.data.token;
-      const newUser = res.data.user;
+      const cleanUser = normalizeUser(res.data.user);
 
       localStorage.setItem("verifyx_token", newToken);
-      localStorage.setItem("verifyx_user", JSON.stringify(newUser));
+      localStorage.setItem("verifyx_user", JSON.stringify(cleanUser));
 
       setToken(newToken);
-      setUser(newUser);
+      setUser(cleanUser);
       setLoading(false);
     }
     return res.data;
