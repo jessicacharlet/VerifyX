@@ -31,6 +31,7 @@ export default function DashboardPage() {
   const [recentAssets, setRecentAssets] = useState([]);
   const [recentVerifications, setRecentVerifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchDashboardData();
@@ -39,6 +40,7 @@ export default function DashboardPage() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
+      setError(null);
       const res = await API.get("/dashboard");
       if (res.data && res.data.success) {
         if (res.data.stats) setStats(res.data.stats);
@@ -57,6 +59,7 @@ export default function DashboardPage() {
       }
     } catch (err) {
       console.error("Fetch dashboard error:", err);
+      setError(err.response?.data?.message || err.message || "Unable to load dashboard data. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -108,6 +111,24 @@ export default function DashboardPage() {
           </Link>
         </div>
       </div>
+
+      {error && (
+        <div className="p-4 rounded-xl bg-red-950/60 border border-red-500/40 text-xs text-red-200 flex items-center justify-between shadow-md">
+          <div className="flex items-center space-x-3">
+            <AlertTriangle className="w-5 h-5 text-red-400 shrink-0" />
+            <div>
+              <div className="font-semibold text-red-100">Unable to load dashboard data</div>
+              <div className="text-red-300 text-[11px]">{error}</div>
+            </div>
+          </div>
+          <button
+            onClick={fetchDashboardData}
+            className="px-3.5 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-200 border border-red-500/30 font-semibold text-xs transition-colors shrink-0"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* 6. Quick Actions Area */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">

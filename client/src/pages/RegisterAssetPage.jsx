@@ -12,6 +12,7 @@ import {
   Search,
   Eye,
   FileText,
+  LayoutDashboard,
 } from "lucide-react";
 import API from "../services/api";
 import Tooltip from "../components/Tooltip";
@@ -227,6 +228,13 @@ export default function RegisterAssetPage() {
               >
                 <Search className="w-3.5 h-3.5 text-sky-400" />
                 <span>Verify Asset</span>
+              </Link>
+              <Link
+                to="/dashboard"
+                className="px-4 py-2.5 rounded-lg bg-[#111A2A] hover:bg-[#162238] text-white border border-[#22304A] font-semibold text-xs transition-colors flex items-center space-x-1.5"
+              >
+                <LayoutDashboard className="w-3.5 h-3.5 text-sky-400" />
+                <span>Go to Dashboard</span>
               </Link>
               <button
                 onClick={handleResetForm}

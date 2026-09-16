@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { ShieldCheck, Info, AlertCircle } from "lucide-react";
@@ -9,12 +9,44 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { login } = useAuth();
+  const { user, token, loading, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const redirectTarget = location.state?.from?.pathname || (typeof location.state?.from === "string" ? location.state.from : null);
-  const redirectMsg = location.state?.message || (redirectTarget?.includes("register") ? "Sign in to register and manage your digital assets." : null);
+  const fromState = location.state?.from;
+  const redirectTarget = fromState
+    ? typeof fromState === "object"
+      ? (fromState.pathname + (fromState.search || ""))
+      : String(fromState)
+    : null;
+
+  const redirectMsg =
+    location.state?.message ||
+    (redirectTarget?.includes("register")
+      ? "Sign in to register and manage your digital assets."
+      : null);
+
+  // Auto-redirect if already authenticated
+  useEffect(() => {
+    if (!loading && user && token) {
+      const isValidInternalPath =
+        redirectTarget &&
+        typeof redirectTarget === "string" &&
+        redirectTarget.startsWith("/") &&
+        !redirectTarget.startsWith("//") &&
+        redirectTarget !== "/login" &&
+        redirectTarget !== "/register";
+
+      const userRole = (user.role || "").toLowerCase();
+      const targetPath = isValidInternalPath
+        ? redirectTarget
+        : userRole === "admin"
+        ? "/admin"
+        : "/dashboard";
+
+      navigate(targetPath, { replace: true });
+    }
+  }, [user, token, loading, navigate, redirectTarget]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,9 +64,10 @@ export default function LoginPage() {
           redirectTarget !== "/login" &&
           redirectTarget !== "/register";
 
+        const userRole = (res.user?.role || user?.role || "").toLowerCase();
         const targetPath = isValidInternalPath
           ? redirectTarget
-          : res.user?.role === "admin"
+          : userRole === "admin"
           ? "/admin"
           : "/dashboard";
 
