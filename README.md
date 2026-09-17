@@ -37,6 +37,7 @@ The VerifyX platform is engineered for speed, low memory usage, and instant API 
 - ⚡ **Asynchronous Non-Blocking Blockchain**: Registration endpoints respond instantly (< 50ms) after SHA-256 generation and database storage. Smart contract execution runs in non-blocking background workers without stalling HTTP connections.
 - 🌊 **Stream-Based SHA-256 Hashing**: Uses Node.js `fs.createReadStream` to compute cryptographic hashes incrementally without loading large files synchronously into RAM buffers.
 - 🏊 **MongoDB Connection Pooling & Indexing**: Connection pooling (`maxPoolSize: 10`, `minPoolSize: 2`) reuses active connections. Database indexes on `sha256Hash`, `assetId`, `ownerId`, `result`, and `createdAt` enable high-speed searches.
+- 🛡️ **Defensive Auth & Exception Handling**: Enforces sanitized user state normalization (`normalizeUser`), preserved protected route navigation, and top-level React `<ErrorBoundary>` exception catching.
 - 🤖 **AI Microservice Integration**: Dedicated Flask microservice evaluating Error Level Analysis (ELA), edge density anomalies, color variance, and Structural Similarity (SSIM).
 - 🚀 **Unified Single-Roundtrip Dashboard API**: `/api/dashboard` consolidates statistics and recent records into a single parallel backend query (`Promise.all`), reducing frontend roundtrips from 3 to 1.
 - 📄 **Paginated Audit History Logs**: `/api/verify/history` supports `page` and `limit` parameters for efficient history log browsing.
@@ -46,10 +47,10 @@ The VerifyX platform is engineered for speed, low memory usage, and instant API 
 ## 3. Key Platform Features
 
 ### 🏢 Digital Asset Dashboard (`/dashboard`)
-- Real-time total registered assets, authentic verifications, modified file alerts, unrecognized file counts, and recent asset audit streams.
+- Real-time total registered assets, authentic verifications, modified file alerts, unrecognized file counts, and recent asset audit streams with error recovery retry states.
 
 ### 📄 Register Digital Asset (`/assets/register`)
-- Drag-and-drop file upload (PDF, DOCX, PNG, JPG, TXT) with automatic SHA-256 fingerprinting, unique Asset ID generation (`AST-XXXXXX`), and optional display name tagging.
+- Drag-and-drop file upload (PDF, DOCX, PNG, JPG, TXT) with automatic SHA-256 fingerprinting, unique Asset ID generation (`AST-XXXXXX`), optional display name tagging, and post-registration action links (View Asset, Verify Asset, Go to Dashboard).
 
 ### 🔍 Digital Asset Verification (`/verify`)
 - Fast file comparison producing clear **ORIGINAL**, **MODIFIED**, or **NOT REGISTERED** outcomes, with collapsible technical SHA-256 hash comparison, AI forgery indicators, and blockchain proof cards.
@@ -59,6 +60,9 @@ The VerifyX platform is engineered for speed, low memory usage, and instant API 
 
 ### 📜 Audit History (`/verification-history`)
 - Searchable and filterable verification audit trail with pagination and collapsible technical inspection details.
+
+### 🔐 Preserved Protected Route Redirection
+- Attempting to visit `/register-asset`, `/assets`, or `/verification-history` while unauthenticated automatically redirects to `/login` with target path retention, restoring the original route after successful authentication.
 
 ### 📦 QR Product Lifecycle Module (`/orders`, `/scan`, `/shipments`)
 - Enterprise product lifecycle tracking from order placement through QR assignment, packaging, quality checkpoints, transport hubs, and delivery.
