@@ -104,6 +104,48 @@ The VerifyX platform is engineered for speed, low memory usage, and instant API 
 | `POST` | `/api/auth/login` | Authenticate user & receive JWT token |
 | `GET` | `/api/auth/me` | Fetch authenticated user profile |
 
+### Product & QR Lifecycle APIs
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/api/products` | Register product with metadata, batch #, and image upload |
+| `GET` | `/api/products` | List registered products with search & pagination |
+| `GET` | `/api/products/:id` | Get product details by Product ID or Mongo ID |
+| `GET` | `/api/products/:id/history` | Get complete verification & audit history for product |
+| `PUT` | `/api/products/:id` | Update product details (admin/manufacturer) |
+| `POST` | `/api/products/:id/transfer` | Transfer product ownership to new owner/wallet |
+| `POST` | `/api/products/:id/deactivate` | Deactivate or revoke product authenticity |
+
+### Order & Supply Chain APIs
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/api/orders` | Create supply chain order for product fulfillment |
+| `GET` | `/api/orders` | Retrieve list of active and completed orders |
+| `GET` | `/api/orders/:id` | Get detailed order status and assigned items |
+| `POST` | `/api/orders/:id/assign-product` | Assign authenticated product item to order |
+
+### Scan & Logistics Tracking APIs
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/api/scans` | Record product QR scan event with GPS / hub location |
+| `GET` | `/api/scans/products/:id/scans` | Fetch geolocation scan audit history for product |
+| `GET` | `/api/shipments` | List active shipments and transit status |
+
+### Blockchain Verification APIs
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/blockchain/product/:id` | Verify product record directly on-chain |
+| `POST` | `/api/blockchain/register` | Record transaction hash and owner wallet on-chain |
+
+### Admin System APIs
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/admin/users` | List user accounts and management roles (Admin only) |
+| `GET` | `/api/admin/products` | List all system products with administrative controls |
+| `GET` | `/api/admin/verifications` | Fetch full enterprise verification log stream |
+| `GET` | `/api/admin/analytics` | System-wide analytics and verification trend metrics |
+| `PUT` | `/api/admin/users/:id/toggle` | Activate or suspend user account access |
+| `PUT` | `/api/admin/products/:id/status` | Update global product verification status |
+
 ---
 
 ## 5. Technology Stack
