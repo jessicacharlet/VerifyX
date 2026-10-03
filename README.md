@@ -1,5 +1,13 @@
 # VerifyX — Digital Asset Authentication, Verification & Lifecycle Platform
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Node.js](https://img.shields.io/badge/Node.js-v18%2B-green.svg?logo=nodedotjs)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/React-18-blue.svg?logo=react)](https://react.dev/)
+[![Express](https://img.shields.io/badge/Express.js-4.x-lightgrey.svg?logo=express)](https://expressjs.com/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-green.svg?logo=mongodb)](https://www.mongodb.com/)
+[![Python](https://img.shields.io/badge/Python-3.9%2B-yellow.svg?logo=python)](https://www.python.org/)
+[![Solidity](https://img.shields.io/badge/Solidity-0.8.x-black.svg?logo=solidity)](https://soliditylang.org/)
+
 > A high-performance digital asset authentication, AI forgery detection, and verification platform for registering, protecting, and verifying digital files using deterministic SHA-256 cryptographic signatures, MongoDB storage, Python AI computer vision models, and Ethereum blockchain recording.
 
 🌐 **Live Production Deployment**: [https://verify-x-tawny.vercel.app](https://verify-x-tawny.vercel.app)
@@ -148,13 +156,41 @@ The VerifyX platform is engineered for speed, low memory usage, and instant API 
 
 ---
 
-## 5. Technology Stack
+## 5. Technology Stack & Directory Architecture
 
+### Technology Stack
 - **Frontend**: React 18, Vite, Vanilla CSS + Tailwind CSS, Lucide Icons, HTML5-QRCode, Recharts.
 - **Backend**: Node.js, Express.js REST API, Vercel Serverless Functions, JWT, bcryptjs, Crypto (SHA-256 streams).
 - **AI Microservice**: Python 3.9+, Flask, Flask-CORS, OpenCV, Pillow (PIL), NumPy, scikit-learn, scikit-image.
 - **Database**: MongoDB Atlas & Mongoose ODM with connection pooling and compound indexing.
 - **Blockchain**: Solidity Smart Contract (`contractArtifact.json`), Ethers.js v6, Hardhat / Ethereum Sepolia.
+
+### Directory Architecture
+```
+VerifyX/
+├── ai-service/             # Flask Python AI microservice (ELA, SSIM, Noise Anomaly)
+│   ├── training/           # AI model dataset preparation, training & evaluation scripts
+│   ├── app.py              # Flask server entrypoint (Port 5001)
+│   └── requirements.txt    # Python dependencies
+├── api/                    # Vercel serverless function wrappers for cloud deployment
+├── blockchain/             # Ethereum Hardhat environment
+│   ├── contracts/          # Solidity smart contracts (ProductVerification.sol)
+│   ├── scripts/            # Deployment and smart contract interact scripts
+│   └── test/               # Hardhat smart contract test suite
+├── client/                 # React 18 + Vite frontend single-page application
+│   ├── src/                # Components, Pages, Context, Hooks & API clients
+│   └── index.html          # HTML5 SPA entrypoint
+├── scripts/                # Database seeders & end-to-end authentication CLI test scripts
+├── server/                 # Express.js REST API backend server
+│   ├── config/             # MongoDB database connection pooling setup
+│   ├── controllers/        # API business logic handlers (Auth, Assets, Verify, Products)
+│   ├── middleware/         # Auth JWT verification & role authorization middleware
+│   ├── models/             # Mongoose schemas (Asset, Verification, Product, User, Scan)
+│   ├── routes/             # Express route definitions
+│   └── server.js           # Server bootstrap entrypoint (Port 5000)
+├── vercel.json             # Vercel deployment configuration
+└── README.md               # System documentation & developer guide
+```
 
 ---
 
