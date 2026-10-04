@@ -75,6 +75,9 @@ The VerifyX platform is engineered for speed, low memory usage, and instant API 
 ### 📦 QR Product Lifecycle Module (`/orders`, `/scan`, `/shipments`)
 - Enterprise product lifecycle tracking from order placement through QR assignment, packaging, quality checkpoints, transport hubs, and delivery.
 
+### ⚠️ Counterfeit & Issue Management (`/issues`, `/quality-check`)
+- Track, investigate, and process customer or inspector counterfeit alerts, damaged asset reports, status updates, and automated product replacements.
+
 ---
 
 ## 4. Primary API Endpoints
@@ -137,6 +140,14 @@ The VerifyX platform is engineered for speed, low memory usage, and instant API 
 | `POST` | `/api/scans` | Record product QR scan event with GPS / hub location |
 | `GET` | `/api/scans/products/:id/scans` | Fetch geolocation scan audit history for product |
 | `GET` | `/api/shipments` | List active shipments and transit status |
+
+### Issue & Counterfeit Management APIs
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/api/issues` | Report product/asset anomaly or counterfeit issue |
+| `GET` | `/api/issues` | Retrieve active counterfeit and audit issues |
+| `PUT` | `/api/issues/:id` | Update issue investigation status |
+| `POST` | `/api/issues/:id/replacement` | Process replacement dispatch for compromised product |
 
 ### Blockchain Verification APIs
 | Method | Endpoint | Description |
